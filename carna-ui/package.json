@@ -1,0 +1,40 @@
+{
+  "name": "Alexandria",
+  "version": "1.0.0",
+  "description": "",
+  "main": "elm.js",
+  "devDependencies": {
+    "clear": "0.0.1",
+    "gulp": "^3.9.1",
+    "gulp-sass": "^3.0.0",
+    "gulp-util": "^3.0.7",
+    "st": "^1.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://source.xing.com/dennis-sivia/knowledge-fusion.git"
+  },
+  "scripts": {
+    "start": "webpack-dev-server --hot --inline --port 3333",
+    "build": "rimraf dist && mkdir -p dist/static/css && webpack && mv dist/*.eot dist/static/css/ && mv dist/*.woff* dist/static/css/ && mv dist/*.svg dist/static/css/ && mv dist/*.ttf dist/static/css/",
+    "reinstall": "yarn add rimraf && rimraf node_modules && npm uninstall -g elm && npm install -g elm && yarn install && elm package install"
+  },
+  "author": "Dennis Sivia <dennis.sivia@xing.com>",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "ace-css": "1.1",
+    "css-loader": "^0.28.4",
+    "elm-hot-loader": "^0.5.4",
+    "elm-webpack-loader": "^4.3.1",
+    "file-loader": "^0.11.2",
+    "font-awesome": "4",
+    "material-design-lite": "^1.3.0",
+    "postcss-loader": "^2.0.5",
+    "rimraf": "^2.6.1",
+    "style-loader": "^0.18.2",
+    "url-loader": "^0.5.9",
+    "webpack": "^2.6.1",
+    "webpack-dev-server": "^2.4.5",
+    "webpack-merge": "^4.1.0"
+  }
+}
