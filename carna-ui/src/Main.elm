@@ -132,7 +132,11 @@ viewBody model =
 
 democell : Int -> List (Style a) -> List (Html a) -> Grid.Cell a
 democell k styling =
-    Grid.cell <| List.concat [ myStyle k, styling ]
+    Grid.cell <| List.concat []
+
+
+
+-- Grid.cell <| List.concat [ myStyle k, styling ]
 
 
 std : List (Style a) -> List (Html a) -> Grid.Cell a
@@ -161,12 +165,15 @@ myStyle h =
 
 viewBodyFatForm : Model -> Html Msg
 viewBodyFatForm model =
-    div [ style [ ( "padding", "3rem" ) ] ]
-        [ viewBodyFatGenderForm model
-        , viewBodyFatPersonForm model
-        , viewBodyFatSkinFoldForm model
-        ]
-        |> Material.Scheme.top
+    let
+        gridStyle =
+            [ Grid.size Grid.All 4, color 5 ]
+    in
+        div [ style [ ( "padding", "3rem" ) ] ]
+            [ viewBodyFatPersonForm model
+            , viewBodyFatSkinFoldForm model
+            ]
+            |> Material.Scheme.top
 
 
 viewBodyFatGenderForm : Model -> Html Msg
@@ -206,31 +213,54 @@ hasGender model gender =
 
 viewBodyFatPersonForm : Model -> Html Msg
 viewBodyFatPersonForm model =
-    div []
-        [ textField 0 "Age" model.mdl
-
-        -- add radio button for gender
-        , textField 1 "Height" model.mdl
-        , textField 2 "Weight" model.mdl
+    let
+        gridStyle =
+            [ Grid.size Grid.All 4, color 5 ]
+    in
+        [ std gridStyle
+            [ viewBodyFatGenderForm model
+            , textField model.mdl 0 "Age"
+            , textField model.mdl 1 "Height"
+            , textField model.mdl 2 "Weight"
+            ]
         ]
+            |> Grid.grid []
 
 
 viewBodyFatSkinFoldForm : Model -> Html Msg
 viewBodyFatSkinFoldForm model =
-    List.range 1 12
-        |> List.map (\i -> std [ Grid.size Grid.All 4, color 5 ] [ text <| "4" ])
-        |> Grid.grid []
+    let
+        style =
+            [ Grid.size Grid.All 4, color 5 ]
+    in
+        [ std style
+            [ textField model.mdl 5 "Chest"
+            , textField model.mdl 6 "Shoulder"
+            , textField model.mdl 7 "Armpit"
+            ]
+        , std style
+            [ textField model.mdl 8 "Biceps"
+            , textField model.mdl 9 "Triceps"
+            , textField model.mdl 10 "Abdomen"
+            ]
+        , std style
+            [ textField model.mdl 11 "Hip"
+            , textField model.mdl 12 "Quad/Thigh"
+            , textField model.mdl 13 "calf"
+            ]
+        ]
+            |> Grid.grid []
 
 
 viewBodyIndexForm : Model -> Html Msg
 viewBodyIndexForm model =
     div
         [ style [ ( "padding", "3rem" ) ] ]
-        [ textField 0 "Age" model.mdl
-        , textField 1 "Height" model.mdl
-        , textField 2 "Weight" model.mdl
-        , textField 3 "Waist" model.mdl
-        , textField 4 "Hip" model.mdl
+        [ textField model.mdl 0 "Age"
+        , textField model.mdl 1 "Height"
+        , textField model.mdl 2 "Weight"
+        , textField model.mdl 3 "Waist"
+        , textField model.mdl 4 "Hip"
         , Button.render Mdl
             [ 5 ]
             model.mdl
@@ -243,8 +273,8 @@ viewBodyIndexForm model =
         ]
 
 
-textField : Int -> String -> Mdl -> Html Msg
-textField i str mdl =
+textField : Mdl -> Int -> String -> Html Msg
+textField mdl i str =
     div []
         [ Textfield.render
             Mdl
@@ -253,6 +283,10 @@ textField i str mdl =
             [ Textfield.label str
             , Textfield.floatingLabel
             , Textfield.text_
+
+            -- Textfield.error
+            -- ("Doesn't match " ++ rx)
+            -- |> Options.when (not <| match model.str4 rx_)
             ]
             []
         ]
