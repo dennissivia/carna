@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Array
-import Html exposing (..)
+import Html exposing (programWithFlags, div, text, h1, Html)
 import Html.Attributes exposing (href, class, style)
 import Material
 import Material.Color as Color
@@ -26,12 +26,17 @@ type Gender
     | Female
 
 
+type alias Flags =
+    { userLanguage : String }
+
+
 type alias Model =
     { count : Int
 
     -- Boilerplate: model store for any and all Mdl components you use.
     , mdl : Material.Model
     , selectedTab : Int
+    , userLanguage : String
     , gender : Maybe Gender
     }
 
@@ -40,13 +45,19 @@ type alias Model =
 -- `Material.model` provides the initial model
 
 
-initialModel : Model
-initialModel =
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( initialModel flags, Cmd.none )
+
+
+initialModel : Flags -> Model
+initialModel flags =
     { count = 0
 
     -- Boilerplate: Always use this initial Mdl model store.
     , mdl = Material.model
     , selectedTab = 0
+    , userLanguage = flags.userLanguage
     , gender = Nothing
     }
 
@@ -110,9 +121,9 @@ view model =
             , Layout.selectedTab model.selectedTab
             , Layout.onSelectTab SelectTab
             ]
-            { header = [ h1 [ style [ ( "padding", "2rem" ) ] ] [ text "Carna - NG" ] ]
+            { header = [ h1 [ style [ ( "padding", "2rem" ) ] ] [ text "Carna - v2" ] ]
             , drawer = []
-            , tabs = ( [ text "Body Index", text "Body Fat Calc" ], [ Color.background (Color.color Color.Teal Color.S400) ] )
+            , tabs = ( [ text "Body Index", text "Body Fat Calc", text <| "Browser language: " ++ model.userLanguage ], [ Color.background (Color.color Color.Teal Color.S400) ] )
             , main = [ viewBody model ]
             }
 
@@ -292,10 +303,10 @@ textField mdl i str =
         ]
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
-        { init = ( initialModel, Cmd.none )
+    Html.programWithFlags
+        { init = init
         , view = view
 
         -- Here we've added no subscriptions, but we'll need to use the `Mdl` subscriptions for some components later.
