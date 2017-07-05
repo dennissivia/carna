@@ -1,16 +1,17 @@
 module Main exposing (..)
 
-import Array
 import String
 import String.Extra as StringExtra
-import Html exposing (programWithFlags, div, text, h1, Html)
+import Html exposing (programWithFlags, div, text, span, h1, i, Html)
 import Html.Attributes exposing (href, class, style)
 import Material
+import Material.Table as Table
+import Material.Icon as Icon
 import Material.Elevation as Elevation
 import Material.Card as Card
 import Material.Color as Color
 import Material.Toggles as Toggles
-import Material.Options exposing (Style, css)
+import Material.Options exposing (Style, css, cs)
 import Material.Grid as Grid
 import Material.Textfield as Textfield
 import Material.Layout as Layout
@@ -18,6 +19,10 @@ import Material.Scheme
 import Material.Options as Options
 import Material.Button as Button
 import Material.Options exposing (css)
+import Material.Icon as Icon
+
+
+-- import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 
 
 type Gender
@@ -100,21 +105,35 @@ initialBodyIndex =
 
 initialModel : Flags -> Model
 initialModel flags =
-    { count = 0
-    , mdl = Material.model
-    , selectedTab = 0
-    , userLanguage = flags.userLanguage
-    , gender = Nothing
-    , bodyIndex = initialBodyIndex
-    , bodyIndexSubmitted = False
-    }
+    let
+        mdl =
+            Material.model
+    in
+        { count = 0
+        , mdl = Layout.setTabsWidth 200 mdl
+        , selectedTab = 0
+        , userLanguage = flags.userLanguage
+        , gender = Nothing
+        , bodyIndex = initialBodyIndex
+        , bodyIndexSubmitted = False
+        }
+
+
+primaryColor : Color.Hue
+primaryColor =
+    Color.Green
+
+
+accentColor : Color.Hue
+accentColor =
+    Color.Yellow
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         BodyIndexSubmit ->
-            model ! []
+            { model | bodyIndexSubmitted = True } ! []
 
         BodyIndexChange bodyIndexMessage ->
             let
@@ -136,7 +155,6 @@ update msg model =
             in
                 newModel ! []
 
-        -- When the `Mdl` messages come through, update appropriately.
         Mdl msg_ ->
             Material.update Mdl msg_ model
 
@@ -238,16 +256,53 @@ validatePresence label str =
 
 view : Model -> Html Msg
 view model =
-    Material.Scheme.topWithScheme Color.Green Color.Purple <|
+    Material.Scheme.topWithScheme primaryColor accentColor <|
         Layout.render Mdl
             model.mdl
             [ Layout.fixedHeader
             , Layout.selectedTab model.selectedTab
             , Layout.onSelectTab SelectTab
             ]
-            { header = [ h1 [ style [ ( "padding", "2rem" ) ] ] [ text "Carna - v2" ] ]
-            , drawer = []
-            , tabs = ( [ text "Body Index", text "Body Fat Calc", text <| "Browser language: " ++ model.userLanguage ], [ Color.background (Color.color Color.Teal Color.S400) ] )
+            { header =
+                [ Layout.row
+                    [ Options.nop, css "transition" "height 333ms ease-in-out 0s" ]
+                    [ Layout.title [] [ text "Carna" ]
+                    , Layout.spacer
+                    , Layout.navigation []
+                        [ Layout.link
+                            []
+                            [ Icon.i "photo" ]
+                        , Layout.link
+                            [ Layout.href "https://github.com/debois/elm-mdl" ]
+                            [ span [] [ text "github" ] ]
+                        , Layout.link
+                            [ Layout.href "http://package.elm-lang.org/packages/debois/elm-mdl/latest/" ]
+                            [ text "elm-package" ]
+                        ]
+                    ]
+                ]
+            , drawer =
+                [ Layout.title [] [ text "Carna" ]
+                , Layout.navigation
+                    []
+                    [ Layout.link
+                        [ Layout.href "https://github.com/debois/elm-mdl" ]
+                        [ text "github" ]
+                    , Layout.link
+                        [ Layout.href "http://package.elm-lang.org/packages/debois/elm-mdl/latest/" ]
+                        [ text "elm-package" ]
+                    , Layout.link
+                        [ Layout.href "#cards"
+                        , Options.onClick (Layout.toggleDrawer Mdl)
+                        ]
+                        [ text "Card component" ]
+                    ]
+                ]
+            , tabs =
+                ( [ text "Body Index", text "Body Fat Calc", text <| "Browser language: " ++ model.userLanguage ]
+                , [ Color.background (Color.color primaryColor Color.S400)
+                  ]
+                )
             , main = [ viewBody model ]
             }
 
@@ -256,63 +311,63 @@ viewBody : Model -> Html Msg
 viewBody model =
     case model.selectedTab of
         0 ->
-            if model.bodyIndexSubmitted then
-                div [] [ viewBodyIndexResultCard model.bodyIndex, viewBodyIndexForm model ]
-            else
-                div [] [ viewBodyIndexForm model ]
+            div [] [ viewBodyIndexForm model ]
 
         1 ->
-            div [] [ viewBodyFatForm model ]
+            div [] []
 
+        -- viewBodyFatForm model ]
         _ ->
             viewBodyIndexForm model
 
 
-democell : Int -> List (Style a) -> List (Html a) -> Grid.Cell a
-democell k styling =
-    Grid.cell <| List.concat []
-
-
-std : List (Style a) -> List (Html a) -> Grid.Cell a
-std =
-    democell 200
-
-
-color : Int -> Style a
-color k =
-    Array.get ((k + 0) % Array.length Color.hues) Color.hues
-        |> Maybe.withDefault Color.Teal
-        |> flip Color.color Color.S500
-        |> Color.background
+gridCell : List (Style a) -> List (Html a) -> Grid.Cell a
+gridCell styling =
+    Grid.cell <| List.concat [ styling ]
 
 
 viewBodyIndexForm : Model -> Html Msg
 viewBodyIndexForm model =
-    div
-        [ style [ ( "padding", "3rem" ) ] ]
-        [ textField model.mdl 0 "Age" (model.bodyIndex.age) (BodyIndexChange << SetAge)
-        , textField model.mdl 1 "Height" (model.bodyIndex.height) (BodyIndexChange << SetHeight)
-        , textField model.mdl 2 "Weight" (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
-        , textField model.mdl 3 "Waist" (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
-        , textField model.mdl 4 "Hip" (model.bodyIndex.hip) (BodyIndexChange << SetHip)
-        , Button.render Mdl
-            [ 5 ]
-            model.mdl
-            [ Button.raised
-            , Button.colored
-            , Button.ripple
-            , Options.onClick BodyIndexSubmit
+    let
+        gridStyle =
+            [ Grid.size Grid.All 5, css "padding" "3rem" ]
+    in
+        [ gridCell gridStyle
+            [ div
+                []
+                [ textField model.mdl 0 "Age" (model.bodyIndex.age) (BodyIndexChange << SetAge)
+                , textField model.mdl 1 "Height" (model.bodyIndex.height) (BodyIndexChange << SetHeight)
+                , textField model.mdl 2 "Weight" (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
+                , textField model.mdl 3 "Waist" (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
+                , textField model.mdl 4 "Hip" (model.bodyIndex.hip) (BodyIndexChange << SetHip)
+                , Button.render Mdl
+                    [ 5 ]
+                    model.mdl
+                    [ Button.raised
+                    , Button.colored
+                    , Button.ripple
+                    , Options.onClick BodyIndexSubmit
+                    ]
+                    [ text "Raised button" ]
+                ]
             ]
-            [ text "Raised button" ]
+        , gridCell gridStyle
+            [ div []
+                [ if model.bodyIndexSubmitted then
+                    div [] [ viewBodyIndexResultCard model.bodyIndex ]
+                  else
+                    div [] []
+                ]
+            ]
         ]
-        |> Material.Scheme.top
+            |> Grid.grid []
 
 
 viewBodyIndexResultCard : BodyIndex -> Html Msg
 viewBodyIndexResultCard bodyIndex =
     Card.view
-        [ css "height" "128px"
-        , css "width" "128px"
+        [ css "height" "100%"
+        , css "width" "100%"
         , Color.background (Color.color Color.Brown Color.S500)
         , Elevation.e8
 
@@ -328,22 +383,87 @@ viewBodyIndexResultCard bodyIndex =
             []
             [ Card.head
                 [ Color.text Color.white ]
-                [ text "Hover here" ]
+                [ viewBodyIndexResulTable bodyIndex ]
             ]
         ]
 
 
-viewBodyFatForm : Model -> Html Msg
-viewBodyFatForm model =
-    let
-        gridStyle =
-            [ Grid.size Grid.All 4, color 5 ]
-    in
-        div [ style [ ( "padding", "3rem" ) ] ]
-            [-- viewBodyFatPersonForm model
-             -- , viewBodyFatSkinFoldForm model
+
+-- faces:
+-- https://material.io/icons/#ic_sentiment_dissatisfied
+-- sentiment_satisfied, sentiment_dissatisfied, sentiment_neutral,
+-- sentiment_very_satisfied, sentiment_very_dissatisfied
+
+
+viewBodyIndexResulTable : BodyIndex -> Html Msg
+viewBodyIndexResulTable bodyIndex =
+    Table.table [ css "width" "100%", cs "body-index-result-table" ]
+        [ Table.thead []
+            [ Table.tr []
+                [ Table.th [] [ text "Body index" ]
+                , Table.th [] [ text "Value" ]
+                , Table.th [] [ text "Rating" ]
+                ]
             ]
-            |> Material.Scheme.top
+        , Table.tbody []
+            [ viewBodyIndexResultRow "BMI WHO" (toString 22) Satisfied
+            , viewBodyIndexResultRow "BAI" (toString 25.2) Satisfied
+            , viewBodyIndexResultRow "Broca Index" (toString 75) Satisfied
+            , viewBodyIndexResultRow "Ponderal Index" (toString 13.6) Satisfied
+            , viewBodyIndexResultRow "Skin Surface Area" (toString 1.85) Satisfied
+            , viewBodyIndexResultRow "Waist-Hip ratio" (toString 0.773) Satisfied
+            ]
+        ]
+
+
+viewBodyIndexResultRow : String -> String -> BodyIndexSatisfaction -> Html Msg
+viewBodyIndexResultRow name value satisfaction =
+    Table.tr
+        []
+        [ Table.td [] [ text name ]
+        , Table.td [ Table.numeric ] [ text value ]
+        , Table.td [ Table.numeric ] [ Icon.i <| satisfactionIcon satisfaction ]
+        ]
+
+
+type BodyIndexSatisfaction
+    = VerySatisfied
+    | Satisfied
+    | Neutral
+    | Dissatisfied
+    | VeryDissatisfied
+
+
+satisfactionIcon : BodyIndexSatisfaction -> String
+satisfactionIcon satisfaction =
+    case satisfaction of
+        VerySatisfied ->
+            "sentiment_very_satisfied"
+
+        Satisfied ->
+            "sentiment_satisfied"
+
+        Neutral ->
+            "sentiment_neutral"
+
+        Dissatisfied ->
+            "sentiment_dissatisfied"
+
+        VeryDissatisfied ->
+            "sentiment_very_dissatisfied"
+
+
+
+-- viewBodyFatForm : Model -> Html Msg
+-- viewBodyFatForm model =
+--     let
+--         gridStyle =
+--             [ Grid.size Grid.All 4]
+--     in
+--         div [ style [ ( "padding", "3rem" ) ] ]
+--             [ viewBodyFatPersonForm model
+--               , viewBodyFatSkinFoldForm model
+--             ]
 
 
 viewBodyFatGenderForm : Model -> Html Msg
@@ -386,9 +506,9 @@ hasGender model gender =
 -- viewBodyFatPersonForm model =
 --     let
 --         gridStyle =
---             [ Grid.size Grid.All 4, color 5 ]
+--             [ Grid.size Grid.All 4]
 --     in
---         [ std gridStyle
+--         [ (gridCell) gridStyle
 --             [ viewBodyFatGenderForm model
 --             , textField model.mdl 0 "Age" ""
 --             , textField model.mdl 1 "Height" ""
@@ -400,19 +520,19 @@ hasGender model gender =
 -- viewBodyFatSkinFoldForm model =
 --     let
 --         style =
---             [ Grid.size Grid.All 4, color 5 ]
+--             [ Grid.size Grid.All 4]
 --     in
---         [ std style
+--         [ (gridCell) style
 --             [ textField model.mdl 5 "Chest" ""
 --             , textField model.mdl 6 "Shoulder" ""
 --             , textField model.mdl 7 "Armpit" ""
 --             ]
---         , std style
+--         , (gridCell) style
 --             [ textField model.mdl 8 "Biceps" ""
 --             , textField model.mdl 9 "Triceps" ""
 --             , textField model.mdl 10 "Abdomen" ""
 --             ]
---         , std style
+--         , (gridCell) style
 --             [ textField model.mdl 11 "Hip" ""
 --             , textField model.mdl 12 "Quad/Thigh" ""
 --             , textField model.mdl 13 "calf" ""
@@ -441,24 +561,10 @@ textField mdl i label value f =
                 , Textfield.floatingLabel
                 , Textfield.text_
                 , content
-
-                -- , Textfield.error
-                --     ("Needs to be provided ")
-                --     |> Options.when (String.isEmpty value)
                 , Options.onInput f
                 ]
                 []
             ]
-
-
-
--- bodyIndexString : Result String value -> String
--- bodyIndexString result =
---     case result of
---         Err error ->
---             error
---         Ok val ->
---             toString val
 
 
 main : Program Flags Model Msg
@@ -466,8 +572,6 @@ main =
     Html.programWithFlags
         { init = init
         , view = view
-
-        -- Here we've added no subscriptions, but we'll need to use the `Mdl` subscriptions for some components later.
         , subscriptions = always Sub.none
         , update = update
         }

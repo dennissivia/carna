@@ -3,7 +3,8 @@ var path = require("path");
 module.exports = {
   entry: {
     app: [
-      './src/index.js'
+        './src/index.js',
+        './src/styles.css'
     ]
   },
 
@@ -48,6 +49,4 @@ module.exports = {
     inline: true,
     stats: { colors: true },
   },
-
-
 };

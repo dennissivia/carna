@@ -987,6 +987,12 @@ elliptic@^6.0.0:
     minimalistic-assert "^1.0.0"
     minimalistic-crypto-utils "^1.0.0"
 
+elm-assets-loader@^0.3.0:
+  version "0.3.0"
+  resolved "http://10.12.35.216:8080/e/elm-assets-loader/_attachments/elm-assets-loader-0.3.0.tgz#154674cf9036f0973aedb70384e510095cfdc9a8"
+  dependencies:
+    loader-utils "^1.0.2"
+
 elm-hot-loader@^0.5.4:
   version "0.5.4"
   resolved "https://registry.yarnpkg.com/elm-hot-loader/-/elm-hot-loader-0.5.4.tgz#5fd9d9058f6efeac2f5fcf83aeef81cf3984312e"
