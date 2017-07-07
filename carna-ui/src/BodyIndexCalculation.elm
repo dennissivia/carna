@@ -25,6 +25,8 @@ calculateBMI weight height =
         |> Result.withDefault -1
 
 
+{-| Formula: (weight / (height / 100 ) ^ 2)
+-}
 calculateBMI_ : Float -> Float -> Float
 calculateBMI_ weight height =
     (weight / ((height / 100) ^ 2))
@@ -75,7 +77,7 @@ calculateSkinSurfaceArea weight height =
         |> Result.withDefault -1
 
 
-{-| Formula: (0.007184* (height ^ 0.725) * (weight ^ 0.425))
+{-| Formula (Du Bois): (0.007184* (height ^ 0.725) * (weight ^ 0.425))
 -}
 calculateSkinSurfaceArea_ : Float -> Float -> Float
 calculateSkinSurfaceArea_ weight height =
