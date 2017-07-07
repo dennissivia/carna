@@ -12,3 +12,24 @@
     color: black;
 
 }
+
+.body-index-result-table th{
+    font-weight: bold!important;
+    text-align: center!important;
+}
+
+.body-index-result-table td{
+    text-align: center!important;
+    /* background-color: pink; */
+    /* padding-left: 20px; */
+}
+
+.body-index-result-table td:last-of-type{
+    /* color: green */
+}
+
+.gender-select label{
+    margin-right: 30px;
+    /* margin-left: 30px; */
+    margin-bottom: 20px;
+}
