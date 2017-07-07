@@ -1,10 +1,15 @@
-module BodyIndexCalculation exposing (calculateBMI, calculateBAI, calculateBrocaIndex, calculatePonderalIndex, calculateSkinSurfaceArea)
+module BodyIndexCalculation exposing (calculateBMI, calculateBAI, calculateBrocaIndex, calculatePonderalIndex, calculateSkinSurfaceArea, calculateWaistHipRatio)
+
+{-| This module provides pure calculations of a set body indices
+-}
 
 
 type alias UnsafeFloat =
     Result String Float
 
 
+{-| Round a Float to two too decimal digits
+-}
 round2 : Float -> Float
 round2 inp =
     round (inp * 100)
@@ -12,6 +17,8 @@ round2 inp =
         |> (flip (/) 100)
 
 
+{-| Calculate the BMI based on two Result Float inputs
+-}
 calculateBMI : UnsafeFloat -> UnsafeFloat -> Float
 calculateBMI weight height =
     Result.map2 calculateBMI_ weight height
@@ -49,6 +56,8 @@ calculatePonderalIndex weight height =
         |> Result.withDefault -1
 
 
+{-| Formula: weight / ((height / 100.0) ^ 3)
+-}
 calculatePonderalIndex_ : Float -> Float -> Float
 calculatePonderalIndex_ weight height =
     let
@@ -66,6 +75,8 @@ calculateSkinSurfaceArea weight height =
         |> Result.withDefault -1
 
 
+{-| Formula: (0.007184* (height ^ 0.725) * (weight ^ 0.425))
+-}
 calculateSkinSurfaceArea_ : Float -> Float -> Float
 calculateSkinSurfaceArea_ weight height =
     let
@@ -78,13 +89,26 @@ calculateSkinSurfaceArea_ weight height =
         c =
             0.425
     in
-        (a * (height * b) * (weight * c))
+        (a * (height ^ b) * (weight ^ c))
             |> round2
 
 
+calculateWaistHipRatio : UnsafeFloat -> UnsafeFloat -> Float
+calculateWaistHipRatio waist hipSize =
+    Result.map2 calculateWaistHipRatio_ waist hipSize
+        |> Result.withDefault -1
 
--- (0.007184*(@data.height**0.725)*(@data.weight**0.425))
--- @data.weight.to_f/((@data.height.to_f/100.0)**3)
+
+{-| Formula: waist / hipSize
+-}
+calculateWaistHipRatio_ : Float -> Float -> Float
+calculateWaistHipRatio_ waist hipSize =
+    waist
+        / hipSize
+        |> round2
+
+
+
 -- 1       ((measurement.hip_size/(measurement.height/100.0)**1.5 ) - 18).round(2)
 -- (flip (/) 100)
 -- \x -> x / 100
