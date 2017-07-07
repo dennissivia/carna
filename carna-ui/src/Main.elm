@@ -66,6 +66,16 @@ type alias BodyIndexResult =
     }
 
 
+type alias BodyIndexResultRating =
+    { bmi : BodyIndexSatisfaction
+    , bai : BodyIndexSatisfaction
+    , brocaIndex : BodyIndexSatisfaction
+    , ponderalIndex : BodyIndexSatisfaction
+    , surfaceArea : BodyIndexSatisfaction
+    , whRatio : BodyIndexSatisfaction
+    }
+
+
 type Msg
     = SelectTab Int
     | BodyIndexSubmit
@@ -81,6 +91,14 @@ type BodyIndexMsg
     | SetWeight String
     | SetWaist String
     | SetHip String
+
+
+type BodyIndexSatisfaction
+    = VerySatisfied
+    | Satisfied
+    | Neutral
+    | Dissatisfied
+    | VeryDissatisfied
 
 
 type alias Mdl =
@@ -199,13 +217,24 @@ calculateBodyIndex bodyIndex =
                         , brocaIndex = calculateBrocaIndex bodyIndex.height
                         , ponderalIndex = calculatePonderalIndex bodyIndex.weight bodyIndex.height
                         , surfaceArea = calculateSkinSurfaceArea bodyIndex.weight bodyIndex.height
-                        , whRatio = 0.75
+                        , whRatio = calculateWaistHipRatio bodyIndex.waist bodyIndex.hipSize
                         }
             in
                 { bodyIndex | result = newBodyIndexResult }
 
         False ->
             { bodyIndex | result = Nothing }
+
+
+rateBodyIndexResult : BodyIndexResult -> BodyIndexResultRating
+rateBodyIndexResult bodyIndexResult =
+    { bmi = Satisfied
+    , bai = Satisfied
+    , brocaIndex = Satisfied
+    , ponderalIndex = Satisfied
+    , surfaceArea = Satisfied
+    , whRatio = Satisfied
+    }
 
 
 validateBodyIndex : BodyIndex -> Bool
@@ -458,23 +487,27 @@ viewBodyIndexResulTable bodyIndex =
             div [] []
 
         Just result ->
-            Table.table [ css "width" "100%", cs "body-index-result-table" ]
-                [ Table.thead []
-                    [ Table.tr []
-                        [ Table.th [] [ text "Body index" ]
-                        , Table.th [] [ text "Value" ]
-                        , Table.th [] [ text "Rating" ]
+            let
+                bodyIndexRating =
+                    rateBodyIndexResult result
+            in
+                Table.table [ css "width" "100%", cs "body-index-result-table" ]
+                    [ Table.thead []
+                        [ Table.tr []
+                            [ Table.th [] [ text "Body index" ]
+                            , Table.th [] [ text "Value" ]
+                            , Table.th [] [ text "Rating" ]
+                            ]
+                        ]
+                    , Table.tbody []
+                        [ viewBodyIndexResultRow "BMI WHO" (toString result.bmi) bodyIndexRating.bmi
+                        , viewBodyIndexResultRow "BAI" (toString result.bai) bodyIndexRating.bai
+                        , viewBodyIndexResultRow "Broca Index" (toString result.brocaIndex) bodyIndexRating.brocaIndex
+                        , viewBodyIndexResultRow "Ponderal Index" (toString result.ponderalIndex) bodyIndexRating.ponderalIndex
+                        , viewBodyIndexResultRow "Skin Surface Area" (toString result.surfaceArea) bodyIndexRating.surfaceArea
+                        , viewBodyIndexResultRow "Waist-Hip ratio" (toString result.whRatio) bodyIndexRating.whRatio
                         ]
                     ]
-                , Table.tbody []
-                    [ viewBodyIndexResultRow "BMI WHO" (toString result.bmi) VerySatisfied
-                    , viewBodyIndexResultRow "BAI" (toString result.bai) Satisfied
-                    , viewBodyIndexResultRow "Broca Index" (toString result.brocaIndex) Neutral
-                    , viewBodyIndexResultRow "Ponderal Index" (toString result.ponderalIndex) Dissatisfied
-                    , viewBodyIndexResultRow "Skin Surface Area" (toString result.surfaceArea) VeryDissatisfied
-                    , viewBodyIndexResultRow "Waist-Hip ratio" (toString result.whRatio) Satisfied
-                    ]
-                ]
 
 
 viewBodyIndexResultRow : String -> String -> BodyIndexSatisfaction -> Html Msg
@@ -485,14 +518,6 @@ viewBodyIndexResultRow name value satisfaction =
         , Table.td [ Table.numeric ] [ text value ]
         , Table.td [ Table.numeric ] [ satisfactionIcon satisfaction ]
         ]
-
-
-type BodyIndexSatisfaction
-    = VerySatisfied
-    | Satisfied
-    | Neutral
-    | Dissatisfied
-    | VeryDissatisfied
 
 
 satisfactionIcon : BodyIndexSatisfaction -> Html Msg
