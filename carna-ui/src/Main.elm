@@ -22,6 +22,7 @@ import Material.Button as Button
 import Material.Options exposing (css)
 import Svg exposing (Svg)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
+import BodyIndexCalculation exposing (..)
 
 
 type Gender
@@ -49,19 +50,20 @@ type alias BodyIndex =
     , height : Result String Float
     , weight : Result String Float
     , waist : Result String Float
-    , hip : Result String Float
-    , valid : Bool
+    , hipSize : Result String Float
     , result : Maybe BodyIndexResult
+    , isValid : Bool
     }
 
 
-type BodyIndexResult
-    = BMI Float
-    | BAI Float
-    | BrocaIndex Float
-    | PonderalIndex Float
-    | SurfaceArea Float
-    | WHRatio Float
+type alias BodyIndexResult =
+    { bmi : Float
+    , bai : Float
+    , brocaIndex : Float
+    , ponderalIndex : Float
+    , surfaceArea : Float
+    , whRatio : Float
+    }
 
 
 type Msg
@@ -96,9 +98,9 @@ initialBodyIndex =
     , height = Ok 165.5
     , weight = Ok 80
     , waist = Ok 80.2
-    , hip = Ok 100.3
+    , hipSize = Ok 100.3
     , result = Nothing
-    , valid = False
+    , isValid = True
     }
 
 
@@ -132,7 +134,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         BodyIndexSubmit ->
-            { model | bodyIndexSubmitted = True } ! []
+            let
+                newBodyIndex =
+                    calculateBodyIndex model.bodyIndex
+            in
+                { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex } ! []
 
         BodyIndexChange bodyIndexMessage ->
             let
@@ -176,14 +182,35 @@ updateBodyIndex bodyIndex msg =
                     { bodyIndex | waist = (validateWaist newWaist) }
 
                 SetHip newHip ->
-                    { bodyIndex | hip = (validateHip newHip) }
+                    { bodyIndex | hipSize = (validateHip newHip) }
     in
-        { newBodyIndex | valid = validateBodyIndex newBodyIndex }
+        { newBodyIndex | isValid = validateBodyIndex newBodyIndex }
+
+
+calculateBodyIndex : BodyIndex -> BodyIndex
+calculateBodyIndex bodyIndex =
+    case bodyIndex.isValid of
+        True ->
+            let
+                newBodyIndexResult =
+                    Just
+                        { bmi = calculateBMI bodyIndex.weight bodyIndex.height
+                        , bai = calculateBAI bodyIndex.hipSize bodyIndex.height
+                        , brocaIndex = calculateBrocaIndex bodyIndex.height
+                        , ponderalIndex = calculatePonderalIndex bodyIndex.weight bodyIndex.height
+                        , surfaceArea = calculateSkinSurfaceArea bodyIndex.weight bodyIndex.height
+                        , whRatio = 0.75
+                        }
+            in
+                { bodyIndex | result = newBodyIndexResult }
+
+        False ->
+            { bodyIndex | result = Nothing }
 
 
 validateBodyIndex : BodyIndex -> Bool
 validateBodyIndex bodyIndex =
-    False
+    True
 
 
 validateAge : String -> Result String Int
@@ -329,16 +356,17 @@ viewBodyIndexForm : Model -> Html Msg
 viewBodyIndexForm model =
     let
         gridStyle =
-            [ Grid.size Grid.All 5, css "padding" "3rem" ]
+            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 6, css "padding" "3rem" ]
     in
         [ gridCell gridStyle
             [ div
                 []
-                [ textField model.mdl 0 "Age" (model.bodyIndex.age) (BodyIndexChange << SetAge)
+                [ viewBodyIndexGenderSelect model
+                , textField model.mdl 0 "Age" (model.bodyIndex.age) (BodyIndexChange << SetAge)
                 , textField model.mdl 1 "Height" (model.bodyIndex.height) (BodyIndexChange << SetHeight)
                 , textField model.mdl 2 "Weight" (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
                 , textField model.mdl 3 "Waist" (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
-                , textField model.mdl 4 "Hip" (model.bodyIndex.hip) (BodyIndexChange << SetHip)
+                , textField model.mdl 4 "Hip" (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
                 , Button.render Mdl
                     [ 5 ]
                     model.mdl
@@ -360,6 +388,31 @@ viewBodyIndexForm model =
             ]
         ]
             |> Grid.grid []
+
+
+viewBodyIndexGenderSelect : Model -> Html Msg
+viewBodyIndexGenderSelect model =
+    div
+        [ class "gender-select" ]
+        [ Toggles.radio Mdl
+            [ 0 ]
+            model.mdl
+            [ Toggles.value <| hasGender model Female
+            , Toggles.group "PersonGenderRadio"
+            , Toggles.ripple
+            , Options.onToggle SelectGenderFemale
+            ]
+            [ text "Female" ]
+        , Toggles.radio Mdl
+            [ 1 ]
+            model.mdl
+            [ Toggles.value <| hasGender model Male
+            , Toggles.group "PersonGenderRadio"
+            , Toggles.ripple
+            , Options.onToggle SelectGenderMale
+            ]
+            [ text "Male" ]
+        ]
 
 
 viewBodyIndexResultCard : BodyIndex -> Html Msg
@@ -400,23 +453,28 @@ viewBodyIndexResultCard bodyIndex =
 
 viewBodyIndexResulTable : BodyIndex -> Html Msg
 viewBodyIndexResulTable bodyIndex =
-    Table.table [ css "width" "100%", cs "body-index-result-table" ]
-        [ Table.thead []
-            [ Table.tr []
-                [ Table.th [] [ text "Body index" ]
-                , Table.th [] [ text "Value" ]
-                , Table.th [] [ text "Rating" ]
+    case bodyIndex.result of
+        Nothing ->
+            div [] []
+
+        Just result ->
+            Table.table [ css "width" "100%", cs "body-index-result-table" ]
+                [ Table.thead []
+                    [ Table.tr []
+                        [ Table.th [] [ text "Body index" ]
+                        , Table.th [] [ text "Value" ]
+                        , Table.th [] [ text "Rating" ]
+                        ]
+                    ]
+                , Table.tbody []
+                    [ viewBodyIndexResultRow "BMI WHO" (toString result.bmi) VerySatisfied
+                    , viewBodyIndexResultRow "BAI" (toString result.bai) Satisfied
+                    , viewBodyIndexResultRow "Broca Index" (toString result.brocaIndex) Neutral
+                    , viewBodyIndexResultRow "Ponderal Index" (toString result.ponderalIndex) Dissatisfied
+                    , viewBodyIndexResultRow "Skin Surface Area" (toString result.surfaceArea) VeryDissatisfied
+                    , viewBodyIndexResultRow "Waist-Hip ratio" (toString result.whRatio) Satisfied
+                    ]
                 ]
-            ]
-        , Table.tbody []
-            [ viewBodyIndexResultRow "BMI WHO" (toString 22) Satisfied
-            , viewBodyIndexResultRow "BAI" (toString 25.2) Satisfied
-            , viewBodyIndexResultRow "Broca Index" (toString 75) Satisfied
-            , viewBodyIndexResultRow "Ponderal Index" (toString 13.6) Satisfied
-            , viewBodyIndexResultRow "Skin Surface Area" (toString 1.85) Satisfied
-            , viewBodyIndexResultRow "Waist-Hip ratio" (toString 0.773) Satisfied
-            ]
-        ]
 
 
 viewBodyIndexResultRow : String -> String -> BodyIndexSatisfaction -> Html Msg
@@ -460,16 +518,16 @@ satisfactionIcon satisfaction =
                 Svg.svg svgStyle [ sentiment_very_dissatisfied Color.red 24 ]
 
 
--- viewBodyFatForm : Model -> Html Msg
--- viewBodyFatForm model =
---     let
---         gridStyle =
---             [ Grid.size Grid.All 4]
---     in
---         div [ style [ ( "padding", "3rem" ) ] ]
---             [ viewBodyFatPersonForm model
---               , viewBodyFatSkinFoldForm model
---             ]
+viewBodyFatForm : Model -> Html Msg
+viewBodyFatForm model =
+    let
+        gridStyle =
+            [ Grid.size Grid.All 4 ]
+    in
+        div [ style [ ( "padding", "3rem" ) ] ]
+            [ viewBodyFatPersonForm model
+            , viewBodyFatSkinFoldForm model
+            ]
 
 
 viewBodyFatGenderForm : Model -> Html Msg
@@ -498,53 +556,51 @@ viewBodyFatGenderForm model =
 
 
 hasGender : Model -> Gender -> Bool
-hasGender model gender =
-    case model.gender of
-        Nothing ->
-            False
-
-        Just gender_ ->
-            gender == gender_
+hasGender model otherGender =
+    Maybe.map (\g -> g == otherGender) model.gender
+        |> Maybe.withDefault False
 
 
+viewBodyFatPersonForm : Model -> Html Msg
+viewBodyFatPersonForm model =
+    let
+        gridStyle =
+            [ Grid.size Grid.All 4 ]
+    in
+        [ (gridCell) gridStyle
+            [ viewBodyFatGenderForm model
 
--- viewBodyFatPersonForm : Model -> Html Msg
--- viewBodyFatPersonForm model =
---     let
---         gridStyle =
---             [ Grid.size Grid.All 4]
---     in
---         [ (gridCell) gridStyle
---             [ viewBodyFatGenderForm model
---             , textField model.mdl 0 "Age" ""
---             , textField model.mdl 1 "Height" ""
---             , textField model.mdl 2 "Weight" ""
---             ]
---         ]
---             |> Grid.grid []
--- viewBodyFatSkinFoldForm : Model -> Html Msg
--- viewBodyFatSkinFoldForm model =
---     let
---         style =
---             [ Grid.size Grid.All 4]
---     in
---         [ (gridCell) style
---             [ textField model.mdl 5 "Chest" ""
---             , textField model.mdl 6 "Shoulder" ""
---             , textField model.mdl 7 "Armpit" ""
---             ]
---         , (gridCell) style
---             [ textField model.mdl 8 "Biceps" ""
---             , textField model.mdl 9 "Triceps" ""
---             , textField model.mdl 10 "Abdomen" ""
---             ]
---         , (gridCell) style
---             [ textField model.mdl 11 "Hip" ""
---             , textField model.mdl 12 "Quad/Thigh" ""
---             , textField model.mdl 13 "calf" ""
---             ]
---         ]
---             |> Grid.grid []
+            -- , textField model.mdl 0 "Age" ""
+            -- , textField model.mdl 1 "Height" ""
+            -- , textField model.mdl 2 "Weight" ""
+            ]
+        ]
+            |> Grid.grid []
+
+
+viewBodyFatSkinFoldForm : Model -> Html Msg
+viewBodyFatSkinFoldForm model =
+    let
+        style =
+            [ Grid.size Grid.All 4 ]
+    in
+        [ (gridCell) style
+            [-- textField model.mdl 5 "Chest" ""
+             -- , textField model.mdl 6 "Shoulder" ""
+             -- , textField model.mdl 7 "Armpit" ""
+            ]
+        , (gridCell) style
+            [--textField model.mdl 8 "Biceps" ""
+             -- , textField model.mdl 9 "Triceps" ""
+             -- , textField model.mdl 10 "Abdomen" ""
+            ]
+        , (gridCell) style
+            [-- textField model.mdl 11 "Hip" ""
+             -- , textField model.mdl 12 "Quad/Thigh" ""
+             -- , textField model.mdl 13 "calf" ""
+            ]
+        ]
+            |> Grid.grid []
 
 
 textField : Mdl -> Int -> String -> Result String num -> (String -> Msg) -> Html Msg
