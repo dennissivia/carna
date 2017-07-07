@@ -3,13 +3,14 @@ module Main exposing (..)
 import String
 import String.Extra as StringExtra
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
-import Html.Attributes exposing (href, class, style)
+import Html.Attributes exposing (href, class, style, width)
 import Material
 import Material.Table as Table
 import Material.Icon as Icon
 import Material.Elevation as Elevation
 import Material.Card as Card
-import Material.Color as Color
+import Material.Color as MColor
+import Color
 import Material.Toggles as Toggles
 import Material.Options exposing (Style, css, cs)
 import Material.Grid as Grid
@@ -19,10 +20,8 @@ import Material.Scheme
 import Material.Options as Options
 import Material.Button as Button
 import Material.Options exposing (css)
-import Material.Icon as Icon
-
-
--- import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
+import Svg exposing (Svg)
+import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 
 
 type Gender
@@ -119,14 +118,14 @@ initialModel flags =
         }
 
 
-primaryColor : Color.Hue
+primaryColor : MColor.Hue
 primaryColor =
-    Color.Green
+    MColor.Green
 
 
-accentColor : Color.Hue
+accentColor : MColor.Hue
 accentColor =
-    Color.Yellow
+    MColor.Yellow
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -300,7 +299,7 @@ view model =
                 ]
             , tabs =
                 ( [ text "Body Index", text "Body Fat Calc", text <| "Browser language: " ++ model.userLanguage ]
-                , [ Color.background (Color.color primaryColor Color.S400)
+                , [ MColor.background (MColor.color primaryColor MColor.S400)
                   ]
                 )
             , main = [ viewBody model ]
@@ -367,8 +366,8 @@ viewBodyIndexResultCard : BodyIndex -> Html Msg
 viewBodyIndexResultCard bodyIndex =
     Card.view
         [ css "height" "100%"
-        , css "width" "100%"
-        , Color.background (Color.color Color.Brown Color.S500)
+        , css "width" "320px"
+        , MColor.background (MColor.color MColor.Brown MColor.S500)
         , Elevation.e8
 
         -- , if model.raised == k then
@@ -382,8 +381,12 @@ viewBodyIndexResultCard bodyIndex =
         [ Card.title
             []
             [ Card.head
-                [ Color.text Color.white ]
-                [ viewBodyIndexResulTable bodyIndex ]
+                [ MColor.text MColor.white ]
+                [ if bodyIndex.isValid then
+                    viewBodyIndexResulTable bodyIndex
+                  else
+                    div [] [ text "invalid input" ]
+                ]
             ]
         ]
 
@@ -422,7 +425,7 @@ viewBodyIndexResultRow name value satisfaction =
         []
         [ Table.td [] [ text name ]
         , Table.td [ Table.numeric ] [ text value ]
-        , Table.td [ Table.numeric ] [ Icon.i <| satisfactionIcon satisfaction ]
+        , Table.td [ Table.numeric ] [ satisfactionIcon satisfaction ]
         ]
 
 
@@ -434,24 +437,27 @@ type BodyIndexSatisfaction
     | VeryDissatisfied
 
 
-satisfactionIcon : BodyIndexSatisfaction -> String
+satisfactionIcon : BodyIndexSatisfaction -> Html Msg
 satisfactionIcon satisfaction =
-    case satisfaction of
-        VerySatisfied ->
-            "sentiment_very_satisfied"
+    let
+        svgStyle =
+            [ width 48 ]
+    in
+        case satisfaction of
+            VerySatisfied ->
+                Svg.svg svgStyle [ sentiment_very_satisfied Color.green 24 ]
 
-        Satisfied ->
-            "sentiment_satisfied"
+            Satisfied ->
+                Svg.svg svgStyle [ sentiment_satisfied Color.green 24 ]
 
-        Neutral ->
-            "sentiment_neutral"
+            Neutral ->
+                Svg.svg svgStyle [ sentiment_neutral Color.black 24 ]
 
-        Dissatisfied ->
-            "sentiment_dissatisfied"
+            Dissatisfied ->
+                Svg.svg svgStyle [ sentiment_dissatisfied Color.red 24 ]
 
-        VeryDissatisfied ->
-            "sentiment_very_dissatisfied"
-
+            VeryDissatisfied ->
+                Svg.svg svgStyle [ sentiment_very_dissatisfied Color.red 24 ]
 
 
 -- viewBodyFatForm : Model -> Html Msg
