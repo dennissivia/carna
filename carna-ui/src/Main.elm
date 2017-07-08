@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import String
+import Regex
 import String.Extra as StringExtra
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
 import Html.Attributes exposing (href, class, style, width)
@@ -289,21 +290,21 @@ validateChainInt label val =
 
 validateFloat : String -> String -> Result String Float
 validateFloat label str =
-    case String.toFloat str of
-        Ok val ->
-            Ok val
+    case Regex.contains (Regex.regex "^[+-]?[0-9]+([.][0-9]+)?$") str of
+        True ->
+            String.toFloat str
 
-        Err _ ->
+        False ->
             Err <| label ++ " is not a valid number"
 
 
 validateInt : String -> String -> Result String Int
 validateInt label str =
-    case String.toInt str of
-        Ok val ->
-            Ok val
+    case Regex.contains (Regex.regex "^[+-]?[0-9]+$") str of
+        True ->
+            String.toInt str
 
-        Err _ ->
+        False ->
             Err <| label ++ " is not a valid number"
 
 
