@@ -239,7 +239,13 @@ rateBodyIndexResult bodyIndexResult =
 
 validateBodyIndex : BodyIndex -> Bool
 validateBodyIndex bodyIndex =
-    True
+    Result.map5 (\_ _ _ _ _ -> True)
+        bodyIndex.age
+        bodyIndex.height
+        bodyIndex.weight
+        bodyIndex.waist
+        bodyIndex.hipSize
+        |> Result.withDefault False
 
 
 validateAge : String -> Result String Int
