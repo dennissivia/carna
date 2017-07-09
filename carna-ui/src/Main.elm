@@ -23,12 +23,10 @@ import Material.Button as Button
 import Material.Options exposing (css)
 import Svg exposing (Svg)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
+import Material.Icons.Alert exposing (error_outline)
 import BodyIndexCalculation exposing (..)
-
-
-type Gender
-    = Male
-    | Female
+import BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBrocaIndex)
+import Utils exposing (Gender(..))
 
 
 type alias Flags =
@@ -40,7 +38,6 @@ type alias Model =
     , mdl : Material.Model
     , selectedTab : Int
     , userLanguage : String
-    , gender : Maybe Gender
     , bodyIndex : BodyIndex
     , bodyIndexSubmitted : Bool
     }
@@ -52,6 +49,7 @@ type alias BodyIndex =
     , weight : Result String Float
     , waist : Result String Float
     , hipSize : Result String Float
+    , gender : Maybe Gender
     , result : Maybe BodyIndexResult
     , isValid : Bool
     }
@@ -80,8 +78,7 @@ type alias BodyIndexResultRating =
 type Msg
     = SelectTab Int
     | BodyIndexSubmit
-    | SelectGenderFemale
-    | SelectGenderMale
+    | SelectGender Gender
     | Mdl (Material.Msg Msg)
     | BodyIndexChange BodyIndexMsg
 
@@ -92,6 +89,7 @@ type BodyIndexMsg
     | SetWeight String
     | SetWaist String
     | SetHip String
+    | SetGender Gender
 
 
 type BodyIndexSatisfaction
@@ -100,6 +98,7 @@ type BodyIndexSatisfaction
     | Neutral
     | Dissatisfied
     | VeryDissatisfied
+    | SatisfactionUnknown
 
 
 type alias Mdl =
@@ -113,11 +112,12 @@ init flags =
 
 initialBodyIndex : BodyIndex
 initialBodyIndex =
-    { age = Ok 28
+    { age = Ok 27
     , height = Ok 165.5
-    , weight = Ok 80
-    , waist = Ok 80.2
+    , weight = Ok 75
+    , waist = Ok 85.2
     , hipSize = Ok 100.3
+    , gender = Nothing
     , result = Nothing
     , isValid = True
     }
@@ -133,7 +133,6 @@ initialModel flags =
         , mdl = Layout.setTabsWidth 200 mdl
         , selectedTab = 0
         , userLanguage = flags.userLanguage
-        , gender = Nothing
         , bodyIndex = initialBodyIndex
         , bodyIndexSubmitted = False
         }
@@ -166,11 +165,12 @@ update msg model =
             in
                 { model | bodyIndex = newBodyIndex } ! []
 
-        SelectGenderMale ->
-            { model | gender = Just Male } ! []
-
-        SelectGenderFemale ->
-            { model | gender = Just Female } ! []
+        SelectGender gender ->
+            let
+                newBodyIndex =
+                    updateBodyIndex model.bodyIndex <| SetGender gender
+            in
+                { model | bodyIndex = newBodyIndex } ! []
 
         SelectTab num ->
             let
@@ -202,6 +202,9 @@ updateBodyIndex bodyIndex msg =
 
                 SetHip newHip ->
                     { bodyIndex | hipSize = (validateHip newHip) }
+
+                SetGender gender ->
+                    { bodyIndex | gender = Just gender }
     in
         { newBodyIndex | isValid = validateBodyIndex newBodyIndex }
 
@@ -215,7 +218,7 @@ calculateBodyIndex bodyIndex =
                     Just
                         { bmi = calculateBMI bodyIndex.weight bodyIndex.height
                         , bai = calculateBAI bodyIndex.hipSize bodyIndex.height
-                        , brocaIndex = calculateBrocaIndex bodyIndex.height
+                        , brocaIndex = calculateBrocaIndex bodyIndex.gender bodyIndex.height
                         , ponderalIndex = calculatePonderalIndex bodyIndex.weight bodyIndex.height
                         , surfaceArea = calculateSkinSurfaceArea bodyIndex.weight bodyIndex.height
                         , whRatio = calculateWaistHipRatio bodyIndex.waist bodyIndex.hipSize
@@ -227,15 +230,35 @@ calculateBodyIndex bodyIndex =
             { bodyIndex | result = Nothing }
 
 
-rateBodyIndexResult : BodyIndexResult -> BodyIndexResultRating
-rateBodyIndexResult bodyIndexResult =
-    { bmi = Satisfied
+{-| TODO: use Classification module instead
+-}
+classifyBodyIndex : BodyIndexResult -> BodyIndexResultRating
+classifyBodyIndex bodyIndexResult =
+    { bmi = classificationToSatisfaction <| classifyBMI bodyIndexResult.bmi
     , bai = Satisfied
-    , brocaIndex = Satisfied
-    , ponderalIndex = Satisfied
-    , surfaceArea = Satisfied
-    , whRatio = Satisfied
+    , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
+    , ponderalIndex = SatisfactionUnknown
+    , surfaceArea = SatisfactionUnknown
+    , whRatio = SatisfactionUnknown
     }
+
+
+classificationToSatisfaction : Maybe Classification -> BodyIndexSatisfaction
+classificationToSatisfaction class =
+    case class of
+        Nothing ->
+            SatisfactionUnknown
+
+        Just class ->
+            case class of
+                Good text ->
+                    Satisfied
+
+                Bad text ->
+                    Neutral
+
+                VeryBad text ->
+                    Dissatisfied
 
 
 validateBodyIndex : BodyIndex -> Bool
@@ -433,19 +456,19 @@ viewBodyIndexGenderSelect model =
         [ Toggles.radio Mdl
             [ 0 ]
             model.mdl
-            [ Toggles.value <| hasGender model Female
+            [ Toggles.value <| hasGender model.bodyIndex Female
             , Toggles.group "PersonGenderRadio"
             , Toggles.ripple
-            , Options.onToggle SelectGenderFemale
+            , Options.onToggle <| SelectGender Female
             ]
             [ text "Female" ]
         , Toggles.radio Mdl
             [ 1 ]
             model.mdl
-            [ Toggles.value <| hasGender model Male
+            [ Toggles.value <| hasGender model.bodyIndex Male
             , Toggles.group "PersonGenderRadio"
             , Toggles.ripple
-            , Options.onToggle SelectGenderMale
+            , Options.onToggle <| SelectGender Male
             ]
             [ text "Male" ]
         ]
@@ -496,7 +519,7 @@ viewBodyIndexResulTable bodyIndex =
         Just result ->
             let
                 bodyIndexRating =
-                    rateBodyIndexResult result
+                    classifyBodyIndex result
             in
                 Table.table [ css "width" "100%", cs "body-index-result-table" ]
                     [ Table.thead []
@@ -549,6 +572,9 @@ satisfactionIcon satisfaction =
             VeryDissatisfied ->
                 Svg.svg svgStyle [ sentiment_very_dissatisfied Color.red 24 ]
 
+            SatisfactionUnknown ->
+                Svg.svg svgStyle [ error_outline Color.blue 24 ]
+
 
 viewBodyFatForm : Model -> Html Msg
 viewBodyFatForm model =
@@ -569,27 +595,27 @@ viewBodyFatGenderForm model =
         [ Toggles.radio Mdl
             [ 0 ]
             model.mdl
-            [ Toggles.value <| hasGender model Female
+            [ Toggles.value <| hasGender model.bodyIndex Female
             , Toggles.group "PersonGenderRadio"
             , Toggles.ripple
-            , Options.onToggle SelectGenderFemale
+            , Options.onToggle <| SelectGender Female
             ]
             [ text "Female" ]
         , Toggles.radio Mdl
             [ 1 ]
             model.mdl
-            [ Toggles.value <| hasGender model Male
+            [ Toggles.value <| hasGender model.bodyIndex Male
             , Toggles.group "PersonGenderRadio"
             , Toggles.ripple
-            , Options.onToggle SelectGenderMale
+            , Options.onToggle <| SelectGender Male
             ]
             [ text "Male" ]
         ]
 
 
-hasGender : Model -> Gender -> Bool
-hasGender model otherGender =
-    Maybe.map (\g -> g == otherGender) model.gender
+hasGender : BodyIndex -> Gender -> Bool
+hasGender bodyIndex otherGender =
+    Maybe.map (\g -> g == otherGender) bodyIndex.gender
         |> Maybe.withDefault False
 
 

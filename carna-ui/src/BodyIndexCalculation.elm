@@ -1,9 +1,10 @@
 module BodyIndexCalculation exposing (calculateBMI, calculateBAI, calculateBrocaIndex, calculatePonderalIndex, calculateSkinSurfaceArea, calculateWaistHipRatio)
 
+import Utils exposing (Gender(..))
+
+
 {-| This module provides pure calculations of a set body indices
 -}
-
-
 type alias UnsafeFloat =
     Result String Float
 
@@ -41,15 +42,32 @@ calculateBAI hipSize height =
 
 calculateBAI_ : Float -> Float -> Float
 calculateBAI_ hipSize height =
-    ((hipSize / (height / 100) ^ 1.5))
-        - 18
+    ((hipSize / (height / 100) ^ 1.5) - 18)
         |> round2
 
 
-calculateBrocaIndex : UnsafeFloat -> Float
-calculateBrocaIndex height =
-    Result.map (\h -> h - 100) height
+calculateBrocaIndex : Maybe Gender -> UnsafeFloat -> Float
+calculateBrocaIndex gender height =
+    Result.map (calculateBrocaIndex_ gender) height
         |> Result.withDefault -1
+
+
+{-| Formula height - 100 * (female or male factor)
+-}
+calculateBrocaIndex_ : Maybe Gender -> Float -> Float
+calculateBrocaIndex_ gender height =
+    let
+        baseWeight =
+            height - 100
+    in
+        case Maybe.withDefault GenderOther gender of
+            Female ->
+                (baseWeight * 0.8)
+                    |> round2
+
+            _ ->
+                (baseWeight * 0.9)
+                    |> round2
 
 
 calculatePonderalIndex : UnsafeFloat -> UnsafeFloat -> Float
