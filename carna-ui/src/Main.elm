@@ -25,7 +25,7 @@ import Svg exposing (Svg)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 import Material.Icons.Alert exposing (error_outline)
 import BodyIndexCalculation exposing (..)
-import BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex)
+import BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
 import Utils exposing (Gender(..))
 
 
@@ -189,19 +189,19 @@ updateBodyIndex bodyIndex msg =
         newBodyIndex =
             case msg of
                 SetAge newAge ->
-                    { bodyIndex | age = (validateAge newAge) }
+                    { bodyIndex | age = validateAge newAge }
 
                 SetHeight newHeight ->
-                    { bodyIndex | height = (validateHeight newHeight) }
+                    { bodyIndex | height = validateHeight newHeight }
 
                 SetWeight newWeight ->
-                    { bodyIndex | weight = (validateWeight newWeight) }
+                    { bodyIndex | weight = validateWeight newWeight }
 
                 SetWaist newWaist ->
-                    { bodyIndex | waist = (validateWaist newWaist) }
+                    { bodyIndex | waist = validateWaist newWaist }
 
                 SetHip newHip ->
-                    { bodyIndex | hipSize = (validateHip newHip) }
+                    { bodyIndex | hipSize = validateHip newHip }
 
                 SetGender gender ->
                     { bodyIndex | gender = Just gender }
@@ -238,8 +238,8 @@ classifyBodyIndex bodyIndexResult age gender =
     , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age <| Maybe.withDefault GenderOther gender)
     , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
     , ponderalIndex = classificationToSatisfaction <| Just (classifyPonderalIndex bodyIndexResult.ponderalIndex)
-    , surfaceArea = SatisfactionUnknown
-    , whRatio = SatisfactionUnknown
+    , surfaceArea = classificationToSatisfaction <| classifySurfaceArea bodyIndexResult.surfaceArea age <| Maybe.withDefault GenderOther gender
+    , whRatio = classificationToSatisfaction <| Just (classifyWaistHipRatio bodyIndexResult.whRatio <| Maybe.withDefault GenderOther gender)
     }
 
 

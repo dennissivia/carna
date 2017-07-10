@@ -1,46 +1,29 @@
-module BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex)
+module BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
 
 import List.Extra as ListExtra
 import Maybe
 import Utils exposing (Gender(..))
 
 
-{-|
+{-| TODO
+Waist Height Ratio
+Bauchumfang
 
+BSI: <https://de.wikipedia.org/wiki/Body-Shape-Index>
+<http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0088793>
 
-# Surface Area
-
-average values:
-general: 1,7 m².
-men: 1,9 m².
-women: 1,6 m²
-12year: 1,33 m²
-
-      def average_value
-        if @measurement.age<=12
-          1.33
-        else
-          if @measurement.female?
-            1.6
-          else
-            1.9
-          end
-        end
-      end
-
-      def lower_border(value)
-        value*0.8
-      end
-
-      def upper_border(value)
-        value*1.2
-      end
+BSA: <https://de.wikipedia.org/wiki/K%C3%B6rperoberfl%C3%A4che>
+<https://de.wikipedia.org/wiki/DuBois-Formel>
 
 -}
 type Classification
     = Good (Maybe String)
     | Bad (Maybe String)
     | VeryBad (Maybe String)
+
+
+type alias Age =
+    Int
 
 
 type alias BodyIndexRange =
@@ -123,7 +106,7 @@ classifyBrocaIndex bi =
             Bad (Just "Too high")
 
 
-classifyBAI : Float -> Maybe Int -> Gender -> Classification
+classifyBAI : Float -> Maybe Age -> Gender -> Classification
 classifyBAI bai age gender =
     case gender of
         Female ->
@@ -175,6 +158,8 @@ classifyBAIFemale bai =
         VeryBad (Just "potentially obese")
 
 
+{-| Ideal range is defined as between 11 and 14
+-}
 classifyPonderalIndex : Float -> Classification
 classifyPonderalIndex bi =
     let
@@ -184,6 +169,94 @@ classifyPonderalIndex bi =
         if bi < lower then
             Bad (Just "Too low")
         else if bi >= lower && bi < upper then
+            Good (Just "Ideal")
+        else
+            Bad (Just "Too high")
+
+
+classifyWaistHipRatio : Float -> Gender -> Classification
+classifyWaistHipRatio ratio gender =
+    let
+        ( lower, upper ) =
+            case gender of
+                Female ->
+                    ( 0.8, 0.84 )
+
+                _ ->
+                    ( 0.9, 0.99 )
+    in
+        if ratio < lower then
+            Bad (Just "Too low")
+        else if ratio >= lower && ratio < upper then
+            Good (Just "Ideal")
+        else
+            Bad (Just "Too high")
+
+
+classifySurfaceArea : Float -> Maybe Age -> Gender -> Maybe Classification
+classifySurfaceArea area age gender =
+    case age of
+        Nothing ->
+            Nothing
+
+        Just age_ ->
+            Just <| classifySurfaceArea_ area age_ gender
+
+
+{-|
+
+
+# Surface Area
+
+average values:
+general: 1,7 m².
+men: 1,9 m².
+women: 1,6 m²
+12year: 1,33 m²
+
+      def average_value
+        if @measurement.age<=12
+          1.33
+        else
+          if @measurement.female?
+            1.6
+          else
+            1.9
+          end
+        end
+      end
+
+      def lower_border(avg)
+        avg*0.8
+      end
+
+      def upper_border(avg)
+        avg*1.2
+      end
+
+-}
+classifySurfaceArea_ : Float -> Age -> Gender -> Classification
+classifySurfaceArea_ area age gender =
+    let
+        average =
+            case age <= 12 of
+                True ->
+                    1.33
+
+                False ->
+                    case gender of
+                        Female ->
+                            1.6
+
+                        _ ->
+                            1.9
+
+        ( lower, upper ) =
+            ( average * 0.8, average * 1.2 )
+    in
+        if area < lower then
+            Bad (Just "Too low")
+        else if area >= lower && area < upper then
             Good (Just "Ideal")
         else
             Bad (Just "Too high")

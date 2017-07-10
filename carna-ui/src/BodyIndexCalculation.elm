@@ -128,9 +128,3 @@ calculateWaistHipRatio_ waist hipSize =
     waist
         / hipSize
         |> round2
-
-
-
--- 1       ((measurement.hip_size/(measurement.height/100.0)**1.5 ) - 18).round(2)
--- (flip (/) 100)
--- \x -> x / 100
