@@ -1,4 +1,4 @@
-module BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBrocaIndex)
+module BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex)
 
 import List.Extra as ListExtra
 import Maybe
@@ -6,41 +6,6 @@ import Utils exposing (Gender(..))
 
 
 {-|
-
-
-# BAI
-
-Status » BAI Male BAI Female·
--- my -- < 5% < 15%
-Underweight < 8% » < 21%
-Healthy 8 to 19% 21 to 33%
-Overweight 19 to 25% 33 to 39%
-Obese · > 25% » > 39%
-
-THRESHOLDS:
-:male => [ 5, 8,19,25],
-:female => [15,21,33,39]
-
-SCOPE:
-measurement.age.nil? || measurement.age < 20 || measurement.age > 40
-
-
-# Broca Index
-
-
-## note about only fitting average hight values?
-
-5 weight=self.broca_index(measurement) // height - 100
-6 if measurement.female?
-7 BodyIndexCalculator.trim_result(weight*0.8+age_offset(measurement.age))
-8 else
-9 BodyIndexCalculator.trim_result(weight*0.9+age_offset(measurement.age))
-10 end
-
-
-# Ponderal Index
-
-[11,14]
 
 
 # Surface Area
@@ -70,21 +35,6 @@ women: 1,6 m²
       def upper_border(value)
         value*1.2
       end
-
-
-# Waist Hip Ratio
-
-                  female     male
-
-#self defined#
-viel zu klein < 0,4 < 0,45 #
-
-Zu Klein < 0,5 < 0,6
-Normalgewicht < 0,8» < 0,9
-Übergewicht 0,8-0,84 0,9-0,99
-Adipositas > 0,85»· > 1,0
-
-CLASSIFICATIONS=[:lower_critical,:lower_warning,:normal,:upper_warning,:upper_critical]
 
 -}
 type Classification
@@ -164,6 +114,72 @@ classifyBrocaIndex bi =
         --     ]
         ( lower, upper ) =
             ( bi * 0.95, bi * 1.05 )
+    in
+        if bi < lower then
+            Bad (Just "Too low")
+        else if bi >= lower && bi < upper then
+            Good (Just "Ideal")
+        else
+            Bad (Just "Too high")
+
+
+classifyBAI : Float -> Maybe Int -> Gender -> Classification
+classifyBAI bai age gender =
+    case gender of
+        Female ->
+            classifyBAIFemale bai
+
+        _ ->
+            classifyBAIMale bai
+
+
+{-| BAI
+
+BAI Male 20 to 40
+Underweight < 8%
+Healthy 8 to 19%
+Overweight 19 to 25%
+Obese > 25%
+
+-}
+classifyBAIMale : Float -> Classification
+classifyBAIMale bai =
+    if bai < 8 then
+        Bad (Just "Too low")
+    else if bai >= 8 && bai < 19 then
+        Good Nothing
+    else if bai >= 19 && bai < 25 then
+        Bad (Just "Too high")
+    else
+        VeryBad (Just "potentially obese")
+
+
+{-| BAI
+
+BAI Female 20 to 40
+Underweight < 21%
+Healthy 21 to 33%
+Overweight 33 to 39%
+Obese > 39%
+
+-}
+classifyBAIFemale : Float -> Classification
+classifyBAIFemale bai =
+    if bai < 1 then
+        Bad (Just "Too low")
+    else if bai >= 21 && bai < 33 then
+        Good Nothing
+    else if bai >= 33 && bai < 39 then
+        Bad (Just "Too high")
+    else
+        VeryBad (Just "potentially obese")
+
+
+classifyPonderalIndex : Float -> Classification
+classifyPonderalIndex bi =
+    let
+        ( lower, upper ) =
+            ( 11, 14 )
     in
         if bi < lower then
             Bad (Just "Too low")

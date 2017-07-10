@@ -40,6 +40,8 @@ calculateBAI hipSize height =
         |> Result.withDefault -1
 
 
+{-| <http://onlinelibrary.wiley.com/doi/10.1038/oby.2011.38/full>
+-}
 calculateBAI_ : Float -> Float -> Float
 calculateBAI_ hipSize height =
     ((hipSize / (height / 100) ^ 1.5) - 18)

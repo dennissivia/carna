@@ -25,7 +25,7 @@ import Svg exposing (Svg)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 import Material.Icons.Alert exposing (error_outline)
 import BodyIndexCalculation exposing (..)
-import BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBrocaIndex)
+import BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex)
 import Utils exposing (Gender(..))
 
 
@@ -232,12 +232,12 @@ calculateBodyIndex bodyIndex =
 
 {-| TODO: use Classification module instead
 -}
-classifyBodyIndex : BodyIndexResult -> BodyIndexResultRating
-classifyBodyIndex bodyIndexResult =
+classifyBodyIndex : BodyIndexResult -> Maybe Int -> Maybe Gender -> BodyIndexResultRating
+classifyBodyIndex bodyIndexResult age gender =
     { bmi = classificationToSatisfaction <| classifyBMI bodyIndexResult.bmi
-    , bai = Satisfied
+    , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age <| Maybe.withDefault GenderOther gender)
     , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
-    , ponderalIndex = SatisfactionUnknown
+    , ponderalIndex = classificationToSatisfaction <| Just (classifyPonderalIndex bodyIndexResult.ponderalIndex)
     , surfaceArea = SatisfactionUnknown
     , whRatio = SatisfactionUnknown
     }
@@ -519,7 +519,7 @@ viewBodyIndexResulTable bodyIndex =
         Just result ->
             let
                 bodyIndexRating =
-                    classifyBodyIndex result
+                    classifyBodyIndex result (Result.toMaybe bodyIndex.age) bodyIndex.gender
             in
                 Table.table [ css "width" "100%", cs "body-index-result-table" ]
                     [ Table.thead []
