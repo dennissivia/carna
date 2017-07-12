@@ -39,6 +39,8 @@ type alias Model =
     , selectedTab : Int
     , userLanguage : String
     , bodyIndex : BodyIndex
+    , bodyFatIndex : BodyFatIndex
+    , bodyFatIndexSubmitted : Bool
     , bodyIndexSubmitted : Bool
     }
 
@@ -65,6 +67,29 @@ type alias BodyIndexResult =
     }
 
 
+type alias BodyFatIndex =
+    { age : Result String Int
+    , height : Result String Float
+    , weight : Result String Float
+    , gender : Maybe Gender
+    , sfArmpit : Result String Int
+    , sfSubscapular : Result String Int -- shoulder blade
+    , sfChest : Result String Int
+    , sfTriceps : Result String Int
+    , sfBiceps : Result String Int
+    , sfAbdomen : Result String Int
+    , sfIliacCrest : Result String Int -- Hip
+    , sfThigh : Result String Int
+    , sfCalf : Result String Int
+    , result : Maybe BodyFatIndexResult
+    , isValid : Bool
+    }
+
+
+type alias BodyFatIndexResult =
+    { bodyFat : Float }
+
+
 type alias BodyIndexResultRating =
     { bmi : BodyIndexSatisfaction
     , bai : BodyIndexSatisfaction
@@ -78,9 +103,11 @@ type alias BodyIndexResultRating =
 type Msg
     = SelectTab Int
     | BodyIndexSubmit
+    | BodyFatIndexSubmit
     | SelectGender Gender
     | Mdl (Material.Msg Msg)
     | BodyIndexChange BodyIndexMsg
+    | BodyFatIndexChange BodyFatIndexMsg
 
 
 type BodyIndexMsg
@@ -90,6 +117,22 @@ type BodyIndexMsg
     | SetWaist String
     | SetHip String
     | SetGender Gender
+
+
+type BodyFatIndexMsg
+    = SetSfiAge String
+    | SetSfiHeight String
+    | SetSfiWeight String
+    | SetSfiGender String
+    | SetSfiArmpit String
+    | SetSfiSubscapular String
+    | SetSfiChest String
+    | SetSfiTriceps String
+    | SetSfiBiceps String
+    | SetSfiAbdomen String
+    | SetSfiIliacCrest String
+    | SetSfiThigh String
+    | SetSfiCalf String
 
 
 type BodyIndexSatisfaction
@@ -123,6 +166,26 @@ initialBodyIndex =
     }
 
 
+initialBodyFatIndex : BodyFatIndex
+initialBodyFatIndex =
+    { age = Ok 27
+    , height = Ok 165.5
+    , weight = Ok 75
+    , gender = Nothing
+    , sfArmpit = Ok 20
+    , sfSubscapular = Ok 20
+    , sfChest = Ok 20
+    , sfTriceps = Ok 20
+    , sfBiceps = Ok 20
+    , sfAbdomen = Ok 20
+    , sfIliacCrest = Ok 20
+    , sfThigh = Ok 20
+    , sfCalf = Ok 20
+    , result = Nothing
+    , isValid = True
+    }
+
+
 initialModel : Flags -> Model
 initialModel flags =
     let
@@ -135,6 +198,8 @@ initialModel flags =
         , userLanguage = flags.userLanguage
         , bodyIndex = initialBodyIndex
         , bodyIndexSubmitted = False
+        , bodyFatIndex = initialBodyFatIndex
+        , bodyFatIndexSubmitted = False
         }
 
 
@@ -158,12 +223,22 @@ update msg model =
             in
                 { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex } ! []
 
+        BodyFatIndexSubmit ->
+            let
+                newBodyFatIndex =
+                    initialBodyFatIndex
+            in
+                { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex } ! []
+
         BodyIndexChange bodyIndexMessage ->
             let
                 newBodyIndex =
                     updateBodyIndex model.bodyIndex bodyIndexMessage
             in
                 { model | bodyIndex = newBodyIndex } ! []
+
+        BodyFatIndexChange bodyFatIndexMessage ->
+            model ! []
 
         SelectGender gender ->
             let
@@ -399,9 +474,8 @@ viewBody model =
             div [] [ viewBodyIndexForm model ]
 
         1 ->
-            div [] []
+            div [] [ viewBodyFatIndexForm model ]
 
-        -- viewBodyFatForm model ]
         _ ->
             viewBodyIndexForm model
 
@@ -415,7 +489,7 @@ viewBodyIndexForm : Model -> Html Msg
 viewBodyIndexForm model =
     let
         gridStyle =
-            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 6, css "padding" "3rem" ]
+            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 4, css "padding" "3rem" ]
     in
         [ gridCell gridStyle
             [ div
@@ -576,16 +650,10 @@ satisfactionIcon satisfaction =
                 Svg.svg svgStyle [ error_outline Color.blue 24 ]
 
 
-viewBodyFatForm : Model -> Html Msg
-viewBodyFatForm model =
-    let
-        gridStyle =
-            [ Grid.size Grid.All 4 ]
-    in
-        div [ style [ ( "padding", "3rem" ) ] ]
-            [ viewBodyFatPersonForm model
-            , viewBodyFatSkinFoldForm model
-            ]
+viewBodyFatIndexForm : Model -> Html Msg
+viewBodyFatIndexForm model =
+    div [ style [ ( "padding", "3rem" ) ] ]
+        [ viewBodyFatIndexFormGrid model ]
 
 
 viewBodyFatGenderForm : Model -> Html Msg
@@ -613,52 +681,74 @@ viewBodyFatGenderForm model =
         ]
 
 
-hasGender : BodyIndex -> Gender -> Bool
-hasGender bodyIndex otherGender =
-    Maybe.map (\g -> g == otherGender) bodyIndex.gender
-        |> Maybe.withDefault False
-
-
-viewBodyFatPersonForm : Model -> Html Msg
-viewBodyFatPersonForm model =
+viewBodyFatIndexFormGrid : Model -> Html Msg
+viewBodyFatIndexFormGrid model =
     let
         gridStyle =
-            [ Grid.size Grid.All 4 ]
+            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 3 ]
     in
-        [ (gridCell) gridStyle
-            [ viewBodyFatGenderForm model
+        div []
+            [ [ gridCell gridStyle [ viewBodyIndexGenderSelect model ] ] |> Grid.grid []
+            , [ gridCell gridStyle
+                    [ textField model.mdl 0 "Age" (model.bodyFatIndex.age) (BodyFatIndexChange << SetSfiAge)
+                    , textField model.mdl 1 "Height" (model.bodyFatIndex.height) (BodyFatIndexChange << SetSfiHeight)
+                    , textField model.mdl 2 "Weight" (model.bodyFatIndex.weight) (BodyFatIndexChange << SetSfiWeight)
+                    , textField model.mdl 3 "Chest" (model.bodyFatIndex.sfChest) (BodyFatIndexChange << SetSfiChest)
+                    , textField model.mdl 4 "Shoulderblade" (model.bodyFatIndex.sfSubscapular) (BodyFatIndexChange << SetSfiSubscapular)
+                    , textField model.mdl 5 "Armpid" (model.bodyFatIndex.sfArmpit) (BodyFatIndexChange << SetSfiArmpit)
+                    ]
+              , gridCell gridStyle
+                    [ div [] [ span [] [] ]
+                    , textField model.mdl 6 "Biceps" (model.bodyFatIndex.sfBiceps) (BodyFatIndexChange << SetSfiBiceps)
+                    , textField model.mdl 7 "Triceps" (model.bodyFatIndex.sfTriceps) (BodyFatIndexChange << SetSfiTriceps)
+                    , textField model.mdl 8 "Abdomen" (model.bodyFatIndex.sfAbdomen) (BodyFatIndexChange << SetSfiAbdomen)
+                    , textField model.mdl 9 "Hip" (model.bodyFatIndex.sfIliacCrest) (BodyFatIndexChange << SetSfiIliacCrest)
+                    , textField model.mdl 10 "Thigh" (model.bodyFatIndex.sfThigh) (BodyFatIndexChange << SetSfiThigh)
+                    , textField model.mdl 11 "Calf" (model.bodyFatIndex.sfCalf) (BodyFatIndexChange << SetSfiCalf)
+                    , Button.render Mdl
+                        [ 5 ]
+                        model.mdl
+                        [ Button.raised
+                        , Button.colored
+                        , Button.ripple
+                        , Options.onClick BodyFatIndexSubmit
+                        ]
+                        [ text "Calculate body fat" ]
+                    ]
+              , gridCell gridStyle
+                    []
+              ]
+                |> Grid.grid []
+            ]
 
-            -- , textField model.mdl 0 "Age" ""
-            -- , textField model.mdl 1 "Height" ""
-            -- , textField model.mdl 2 "Weight" ""
+
+viewBodyFatIndexResultCard : BodyFatIndex -> Html Msg
+viewBodyFatIndexResultCard bodyFatIndex =
+    Card.view
+        [ css "height" "100%"
+        , css "width" "320px"
+        , MColor.background (MColor.color MColor.Brown MColor.S500)
+        , Elevation.e8
+
+        -- , if model.raised == k then
+        -- Elevation.e8
+        -- else
+        -- Elevation.e2
+        -- , Elevation.transition 250
+        -- , Options.onMouseEnter (Raise k)
+        -- , Options.onMouseLeave (Raise -1)
+        ]
+        [ Card.title
+            []
+            [ Card.head
+                [ MColor.text MColor.white ]
+                [ if bodyFatIndex.isValid then
+                    div [] [ text "Your result is ?" ]
+                  else
+                    div [] [ text "invalid input" ]
+                ]
             ]
         ]
-            |> Grid.grid []
-
-
-viewBodyFatSkinFoldForm : Model -> Html Msg
-viewBodyFatSkinFoldForm model =
-    let
-        style =
-            [ Grid.size Grid.All 4 ]
-    in
-        [ (gridCell) style
-            [-- textField model.mdl 5 "Chest" ""
-             -- , textField model.mdl 6 "Shoulder" ""
-             -- , textField model.mdl 7 "Armpit" ""
-            ]
-        , (gridCell) style
-            [--textField model.mdl 8 "Biceps" ""
-             -- , textField model.mdl 9 "Triceps" ""
-             -- , textField model.mdl 10 "Abdomen" ""
-            ]
-        , (gridCell) style
-            [-- textField model.mdl 11 "Hip" ""
-             -- , textField model.mdl 12 "Quad/Thigh" ""
-             -- , textField model.mdl 13 "calf" ""
-            ]
-        ]
-            |> Grid.grid []
 
 
 textField : Mdl -> Int -> String -> Result String num -> (String -> Msg) -> Html Msg
@@ -685,6 +775,12 @@ textField mdl i label value f =
                 ]
                 []
             ]
+
+
+hasGender : BodyIndex -> Gender -> Bool
+hasGender bodyIndex otherGender =
+    Maybe.map (\g -> g == otherGender) bodyIndex.gender
+        |> Maybe.withDefault False
 
 
 main : Program Flags Model Msg
