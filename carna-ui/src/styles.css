@@ -33,3 +33,5 @@
     /* margin-left: 30px; */
     margin-bottom: 20px;
 }
+
+.elm-overlay { z-index: 999; }
