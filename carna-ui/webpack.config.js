@@ -4,7 +4,6 @@ module.exports = {
   entry: {
     app: [
         './src/index.js',
-        './src/styles.css'
     ]
   },
 
