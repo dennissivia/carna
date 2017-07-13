@@ -218,15 +218,27 @@ update msg model =
     case msg of
         BodyIndexSubmit ->
             let
+                newBodyIndexResult =
+                    calculateBodyIndexResult model.bodyIndex
+
+                oldBodyIndex =
+                    model.bodyIndex
+
                 newBodyIndex =
-                    calculateBodyIndex model.bodyIndex
+                    { oldBodyIndex | result = newBodyIndexResult }
             in
                 { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex } ! []
 
         BodyFatIndexSubmit ->
             let
+                newBodyFatIndexResult =
+                    calculateBodyFatIndexResult model.bodyFatIndex
+
+                oldBodyFatIndex =
+                    model.bodyFatIndex
+
                 newBodyFatIndex =
-                    initialBodyFatIndex
+                    { oldBodyFatIndex | result = newBodyFatIndexResult }
             in
                 { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex } ! []
 
@@ -284,25 +296,31 @@ updateBodyIndex bodyIndex msg =
         { newBodyIndex | isValid = validateBodyIndex newBodyIndex }
 
 
-calculateBodyIndex : BodyIndex -> BodyIndex
-calculateBodyIndex bodyIndex =
-    case bodyIndex.isValid of
+calculateBodyFatIndexResult : BodyFatIndex -> Maybe BodyFatIndexResult
+calculateBodyFatIndexResult bfi =
+    case bfi.isValid of
         True ->
-            let
-                newBodyIndexResult =
-                    Just
-                        { bmi = calculateBMI bodyIndex.weight bodyIndex.height
-                        , bai = calculateBAI bodyIndex.hipSize bodyIndex.height
-                        , brocaIndex = calculateBrocaIndex bodyIndex.gender bodyIndex.height
-                        , ponderalIndex = calculatePonderalIndex bodyIndex.weight bodyIndex.height
-                        , surfaceArea = calculateSkinSurfaceArea bodyIndex.weight bodyIndex.height
-                        , whRatio = calculateWaistHipRatio bodyIndex.waist bodyIndex.hipSize
-                        }
-            in
-                { bodyIndex | result = newBodyIndexResult }
+            Just { bodyFat = 22 }
 
         False ->
-            { bodyIndex | result = Nothing }
+            Nothing
+
+
+calculateBodyIndexResult : BodyIndex -> Maybe BodyIndexResult
+calculateBodyIndexResult bodyIndex =
+    case bodyIndex.isValid of
+        True ->
+            Just
+                { bmi = calculateBMI bodyIndex.weight bodyIndex.height
+                , bai = calculateBAI bodyIndex.hipSize bodyIndex.height
+                , brocaIndex = calculateBrocaIndex bodyIndex.gender bodyIndex.height
+                , ponderalIndex = calculatePonderalIndex bodyIndex.weight bodyIndex.height
+                , surfaceArea = calculateSkinSurfaceArea bodyIndex.weight bodyIndex.height
+                , whRatio = calculateWaistHipRatio bodyIndex.waist bodyIndex.hipSize
+                }
+
+        False ->
+            Nothing
 
 
 {-| TODO: use Classification module instead
@@ -489,7 +507,7 @@ viewBodyIndexForm : Model -> Html Msg
 viewBodyIndexForm model =
     let
         gridStyle =
-            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 4, css "padding" "3rem" ]
+            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 5, css "padding" "2rem" ]
     in
         [ gridCell gridStyle
             [ div
@@ -685,7 +703,7 @@ viewBodyFatIndexFormGrid : Model -> Html Msg
 viewBodyFatIndexFormGrid model =
     let
         gridStyle =
-            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 3 ]
+            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 4 ]
     in
         div []
             [ [ gridCell gridStyle [ viewBodyIndexGenderSelect model ] ] |> Grid.grid []
@@ -716,7 +734,13 @@ viewBodyFatIndexFormGrid model =
                         [ text "Calculate body fat" ]
                     ]
               , gridCell gridStyle
-                    []
+                    [ div []
+                        [ if model.bodyFatIndexSubmitted then
+                            div [] [ viewBodyFatIndexResultCard model.bodyFatIndex ]
+                          else
+                            div [] []
+                        ]
+                    ]
               ]
                 |> Grid.grid []
             ]
@@ -741,14 +765,27 @@ viewBodyFatIndexResultCard bodyFatIndex =
         [ Card.title
             []
             [ Card.head
-                [ MColor.text MColor.white ]
+                [ Card.border, MColor.text MColor.white ]
                 [ if bodyFatIndex.isValid then
-                    div [] [ text "Your result is ?" ]
+                    div [] [ text <| "Your result is " ++ (viewBodyFatValue bodyFatIndex.result) ]
                   else
                     div [] [ text "invalid input" ]
                 ]
+            , Card.subhead [] [ text "Subheading" ]
             ]
+        , Card.text [] [ text "card body" ]
+        , Card.actions [ Card.border, MColor.text MColor.white ] [ text "card actions" ]
         ]
+
+
+{-| viewBodyFatValue : Maybe BodyFatIndexResult -> String
+viewBodyFatValue maybeBFI =
+Maybe.map toString maybeBFI
+|> Maybe.withDefault "N/A"
+-}
+viewBodyFatValue : Maybe BodyFatIndexResult -> String
+viewBodyFatValue =
+    Maybe.withDefault "N/A" << Maybe.map toString << Maybe.map (.bodyFat)
 
 
 textField : Mdl -> Int -> String -> Result String num -> (String -> Msg) -> Html Msg
