@@ -1,21 +1,6 @@
 module BodyIndexCalculation exposing (calculateBMI, calculateBAI, calculateBrocaIndex, calculatePonderalIndex, calculateSkinSurfaceArea, calculateWaistHipRatio)
 
-import Utils exposing (Gender(..))
-
-
-{-| This module provides pure calculations of a set body indices
--}
-type alias UnsafeFloat =
-    Result String Float
-
-
-{-| Round a Float to two too decimal digits
--}
-round2 : Float -> Float
-round2 inp =
-    round (inp * 100)
-        |> toFloat
-        |> (flip (/) 100)
+import Utils exposing (Gender(..), UnsafeFloat, round2)
 
 
 {-| Calculate the BMI based on two Result Float inputs

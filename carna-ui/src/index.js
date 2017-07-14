@@ -8,7 +8,6 @@ require('./index.html');
 require('./styles.css');
 
 var Elm = require('./Main.elm');
-
 var lang = navigator.language || navigator.userLanguage || 'en-EN';
 var app = Elm.Main.fullscreen({userLanguage: lang});
 

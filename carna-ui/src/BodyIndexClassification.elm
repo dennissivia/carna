@@ -1,8 +1,8 @@
-module BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
+module BodyIndexClassification exposing (classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
 
 import List.Extra as ListExtra
 import Maybe
-import Utils exposing (Gender(..))
+import Utils exposing (Gender(..), Classification(..), Age)
 
 
 {-| TODO
@@ -16,16 +16,6 @@ BSA: <https://de.wikipedia.org/wiki/K%C3%B6rperoberfl%C3%A4che>
 <https://de.wikipedia.org/wiki/DuBois-Formel>
 
 -}
-type Classification
-    = Good (Maybe String)
-    | Bad (Maybe String)
-    | VeryBad (Maybe String)
-
-
-type alias Age =
-    Int
-
-
 type alias BodyIndexRange =
     { start : Float
     , end : Float

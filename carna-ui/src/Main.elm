@@ -25,8 +25,10 @@ import Svg exposing (Svg)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 import Material.Icons.Alert exposing (error_outline)
 import BodyIndexCalculation exposing (..)
-import BodyIndexClassification exposing (Classification(..), classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
-import Utils exposing (Gender(..))
+import BodyIndexClassification exposing (classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
+import Utils exposing (Gender(..), Classification(..), Age)
+import BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhca, caliper7foldsJp, caliper9foldsParillo)
+import BodyFatClassification exposing (..)
 
 
 type alias Flags =
@@ -46,7 +48,7 @@ type alias Model =
 
 
 type alias BodyIndex =
-    { age : Result String Int
+    { age : Result String Age
     , height : Result String Float
     , weight : Result String Float
     , waist : Result String Float
@@ -68,26 +70,22 @@ type alias BodyIndexResult =
 
 
 type alias BodyFatIndex =
-    { age : Result String Int
+    { age : Result String Age
     , height : Result String Float
     , weight : Result String Float
     , gender : Maybe Gender
-    , sfArmpit : Result String Int
-    , sfSubscapular : Result String Int -- shoulder blade
-    , sfChest : Result String Int
-    , sfTriceps : Result String Int
-    , sfBiceps : Result String Int
-    , sfAbdomen : Result String Int
-    , sfIliacCrest : Result String Int -- Hip
-    , sfThigh : Result String Int
-    , sfCalf : Result String Int
+    , skinFolds : Skinfolds
     , result : Maybe BodyFatIndexResult
     , isValid : Bool
     }
 
 
 type alias BodyFatIndexResult =
-    { bodyFat : Float }
+    { bodyFat1 : Maybe Float
+    , bodyFat2 : Maybe Float
+    , bodyFat3 : Maybe Float
+    , bodyFat4 : Maybe Float
+    }
 
 
 type alias BodyIndexResultRating =
@@ -172,15 +170,17 @@ initialBodyFatIndex =
     , height = Ok 165.5
     , weight = Ok 75
     , gender = Nothing
-    , sfArmpit = Ok 20
-    , sfSubscapular = Ok 20
-    , sfChest = Ok 20
-    , sfTriceps = Ok 20
-    , sfBiceps = Ok 20
-    , sfAbdomen = Ok 20
-    , sfIliacCrest = Ok 20
-    , sfThigh = Ok 20
-    , sfCalf = Ok 20
+    , skinFolds =
+        { armpit = Ok 20
+        , subscapular = Ok 20
+        , chest = Ok 20
+        , triceps = Ok 20
+        , biceps = Ok 20
+        , abdomen = Ok 20
+        , iliacCrest = Ok 20
+        , thigh = Ok 20
+        , calf = Ok 20
+        }
     , result = Nothing
     , isValid = True
     }
@@ -300,7 +300,12 @@ calculateBodyFatIndexResult : BodyFatIndex -> Maybe BodyFatIndexResult
 calculateBodyFatIndexResult bfi =
     case bfi.isValid of
         True ->
-            Just { bodyFat = 22 }
+            Just
+                { bodyFat1 = caliper3foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
+                , bodyFat2 = Just 19
+                , bodyFat3 = Just 20
+                , bodyFat4 = Just 21
+                }
 
         False ->
             Nothing
@@ -325,7 +330,7 @@ calculateBodyIndexResult bodyIndex =
 
 {-| TODO: use Classification module instead
 -}
-classifyBodyIndex : BodyIndexResult -> Maybe Int -> Maybe Gender -> BodyIndexResultRating
+classifyBodyIndex : BodyIndexResult -> Maybe Age -> Maybe Gender -> BodyIndexResultRating
 classifyBodyIndex bodyIndexResult age gender =
     { bmi = classificationToSatisfaction <| classifyBMI bodyIndexResult.bmi
     , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age <| Maybe.withDefault GenderOther gender)
@@ -365,9 +370,9 @@ validateBodyIndex bodyIndex =
         |> Result.withDefault False
 
 
-validateAge : String -> Result String Int
+validateAge : String -> Result String Age
 validateAge =
-    validateChainInt "Age"
+    validateChainFloat "Age"
 
 
 validateHeight : String -> Result String Float
@@ -642,6 +647,36 @@ viewBodyIndexResultRow name value satisfaction =
         ]
 
 
+
+-- viewFatResulTable : BodyFatIndex -> Html Msg
+-- viewFatResulTable bodyIndex =
+--     case bodyIndex.result of
+--         Nothing ->
+--             div [] []
+--         Just result ->
+--             let
+--                 x =
+--                     1
+--                 -- bodyIndexRating =
+--                 --     classifyBodyFat result (Result.toMaybe bodyIndex.age) bodyIndex.gender
+--             in
+--                 Table.table [ css "width" "100%", cs "body-index-result-table" ]
+--                     [ Table.thead []
+--                         [ Table.tr []
+--                             [ Table.th [] [ text "Body index" ]
+--                             , Table.th [] [ text "Value" ]
+--                             , Table.th [] [ text "Rating" ]
+--                             ]
+--                         ]
+--                     , Table.tbody []
+--                         [ viewBodyIndexResultRow "3 Falten" (toString result.bodyFat1) bodyIndexRating.bmi
+--                         , viewBodyIndexResultRow "4 Falten" (toString result.bodyFat2) bodyIndexRating.bai
+--                         , viewBodyIndexResultRow "7 Falten" (toString result.bodyFat3) bodyIndexRating.brocaIndex
+--                         , viewBodyIndexResultRow "9 Falten" (toString result.bodyFat4) bodyIndexRating.ponderalIndex
+--                         ]
+--                     ]
+
+
 satisfactionIcon : BodyIndexSatisfaction -> Html Msg
 satisfactionIcon satisfaction =
     let
@@ -704,25 +739,31 @@ viewBodyFatIndexFormGrid model =
     let
         gridStyle =
             [ Grid.size Grid.All 12, Grid.size Grid.Desktop 4 ]
+
+        bodyFatIndex =
+            model.bodyFatIndex
+
+        skinFolds =
+            model.bodyFatIndex.skinFolds
     in
         div []
             [ [ gridCell gridStyle [ viewBodyIndexGenderSelect model ] ] |> Grid.grid []
             , [ gridCell gridStyle
-                    [ textField model.mdl 0 "Age" (model.bodyFatIndex.age) (BodyFatIndexChange << SetSfiAge)
-                    , textField model.mdl 1 "Height" (model.bodyFatIndex.height) (BodyFatIndexChange << SetSfiHeight)
-                    , textField model.mdl 2 "Weight" (model.bodyFatIndex.weight) (BodyFatIndexChange << SetSfiWeight)
-                    , textField model.mdl 3 "Chest" (model.bodyFatIndex.sfChest) (BodyFatIndexChange << SetSfiChest)
-                    , textField model.mdl 4 "Shoulderblade" (model.bodyFatIndex.sfSubscapular) (BodyFatIndexChange << SetSfiSubscapular)
-                    , textField model.mdl 5 "Armpid" (model.bodyFatIndex.sfArmpit) (BodyFatIndexChange << SetSfiArmpit)
+                    [ textField model.mdl 0 "Age" (bodyFatIndex.age) (BodyFatIndexChange << SetSfiAge)
+                    , textField model.mdl 1 "Height" (bodyFatIndex.height) (BodyFatIndexChange << SetSfiHeight)
+                    , textField model.mdl 2 "Weight" (bodyFatIndex.weight) (BodyFatIndexChange << SetSfiWeight)
+                    , textField model.mdl 3 "Chest" (skinFolds.chest) (BodyFatIndexChange << SetSfiChest)
+                    , textField model.mdl 4 "Shoulderblade" (skinFolds.subscapular) (BodyFatIndexChange << SetSfiSubscapular)
+                    , textField model.mdl 5 "Armpid" (skinFolds.armpit) (BodyFatIndexChange << SetSfiArmpit)
                     ]
               , gridCell gridStyle
                     [ div [] [ span [] [] ]
-                    , textField model.mdl 6 "Biceps" (model.bodyFatIndex.sfBiceps) (BodyFatIndexChange << SetSfiBiceps)
-                    , textField model.mdl 7 "Triceps" (model.bodyFatIndex.sfTriceps) (BodyFatIndexChange << SetSfiTriceps)
-                    , textField model.mdl 8 "Abdomen" (model.bodyFatIndex.sfAbdomen) (BodyFatIndexChange << SetSfiAbdomen)
-                    , textField model.mdl 9 "Hip" (model.bodyFatIndex.sfIliacCrest) (BodyFatIndexChange << SetSfiIliacCrest)
-                    , textField model.mdl 10 "Thigh" (model.bodyFatIndex.sfThigh) (BodyFatIndexChange << SetSfiThigh)
-                    , textField model.mdl 11 "Calf" (model.bodyFatIndex.sfCalf) (BodyFatIndexChange << SetSfiCalf)
+                    , textField model.mdl 6 "skinFolds" (skinFolds.biceps) (BodyFatIndexChange << SetSfiBiceps)
+                    , textField model.mdl 7 "Triceps" (skinFolds.triceps) (BodyFatIndexChange << SetSfiTriceps)
+                    , textField model.mdl 8 "Abdomen" (skinFolds.abdomen) (BodyFatIndexChange << SetSfiAbdomen)
+                    , textField model.mdl 9 "Hip" (skinFolds.iliacCrest) (BodyFatIndexChange << SetSfiIliacCrest)
+                    , textField model.mdl 10 "Thigh" (skinFolds.thigh) (BodyFatIndexChange << SetSfiThigh)
+                    , textField model.mdl 11 "Calf" (skinFolds.calf) (BodyFatIndexChange << SetSfiCalf)
                     , Button.render Mdl
                         [ 5 ]
                         model.mdl
@@ -778,14 +819,9 @@ viewBodyFatIndexResultCard bodyFatIndex =
         ]
 
 
-{-| viewBodyFatValue : Maybe BodyFatIndexResult -> String
-viewBodyFatValue maybeBFI =
-Maybe.map toString maybeBFI
-|> Maybe.withDefault "N/A"
--}
 viewBodyFatValue : Maybe BodyFatIndexResult -> String
 viewBodyFatValue =
-    Maybe.withDefault "N/A" << Maybe.map toString << Maybe.map (.bodyFat)
+    Maybe.withDefault "N/A" << Maybe.map (toString << .bodyFat1)
 
 
 textField : Mdl -> Int -> String -> Result String num -> (String -> Msg) -> Html Msg

@@ -1,4 +1,5 @@
 dist/app.js
+dist/index.html
 node_modules
 elm-stuff
 elm-mdl-reference/
