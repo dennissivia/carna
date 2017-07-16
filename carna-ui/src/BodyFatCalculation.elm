@@ -67,13 +67,14 @@ caliper3foldsJp skinFolds gender age =
 S = armpit + shoulderblade + chest + abdomen
 (0.27784*S)-(0.00053 * S^2) + (0.12437*@data.age-3.28791)
 -}
-caliper4foldsNhca : Skinfolds -> Age -> Maybe Float
+caliper4foldsNhca : Skinfolds -> Result String Age -> Maybe Float
 caliper4foldsNhca skinFolds age =
     Result.map4 (\a b c d -> a + b + c + d) skinFolds.armpit skinFolds.subscapular skinFolds.chest skinFolds.abdomen
-        |> Result.map
-            (\sum ->
-                (0.27784 * sum) - (0.00053 * (sum ^ 2)) + (0.12437 * age - 3.28791)
+        |> Result.map2
+            (\age_ sum ->
+                (0.27784 * sum) - (0.00053 * (sum ^ 2)) + (0.12437 * age_ - 3.28791)
             )
+            age
         |> Result.map round2
         |> Result.toMaybe
 
@@ -103,7 +104,7 @@ S = Sum of skinfolds
 A = Age in years
 
 -}
-caliper7foldsJp : Skinfolds -> Gender -> Age -> Maybe Float
+caliper7foldsJp : Skinfolds -> Gender -> Result String Age -> Maybe Float
 caliper7foldsJp skinFolds gender age =
     let
         skinFolds_ =
@@ -123,10 +124,11 @@ caliper7foldsJp skinFolds gender age =
         case gender of
             Female ->
                 sum
-                    |> Result.map
-                        (\s ->
-                            (1.097 - 0.00046971 * s + 0.00000056 * s ^ 2 - 0.00012828 * age)
+                    |> Result.map2
+                        (\age_ s ->
+                            (1.097 - 0.00046971 * s + 0.00000056 * s ^ 2 - 0.00012828 * age_)
                         )
+                        age
                     |> Result.map
                         (\d -> 495 / d - 450)
                     |> Result.map round2
@@ -134,10 +136,11 @@ caliper7foldsJp skinFolds gender age =
 
             _ ->
                 sum
-                    |> Result.map
-                        (\s ->
-                            (1.112 - 0.00043499 * s + 0.00000055 * s ^ 2 - 0.00028826 * age)
+                    |> Result.map2
+                        (\age_ s ->
+                            (1.112 - 0.00043499 * s + 0.00000055 * s ^ 2 - 0.00028826 * age_)
                         )
+                        age
                     |> Result.map
                         (\d -> 495 / d - 450)
                     |> Result.map round2
@@ -153,7 +156,7 @@ caliper7foldsJp skinFolds gender age =
     end
 
 -}
-caliper9foldsParillo : Skinfolds -> Float -> Maybe Float
+caliper9foldsParillo : Skinfolds -> Result String Float -> Maybe Float
 caliper9foldsParillo skinFolds weight =
     let
         skinFolds_ =
@@ -172,6 +175,6 @@ caliper9foldsParillo skinFolds weight =
         sum =
             Result.map List.sum skinFolds_
     in
-        Result.map (\s -> 27 * s / (weight / 0.454)) sum
+        Result.map2 (\s weight_ -> 27 * s / (weight_ / 0.454)) sum weight
             |> Result.map round2
             |> Result.toMaybe

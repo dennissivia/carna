@@ -13,13 +13,23 @@ type alias Threshold =
     }
 
 
-classifyBodyFat : Gender -> Age -> Float -> Maybe Classification
+classifyBodyFat : Gender -> Maybe Age -> Maybe Float -> Maybe Classification
 classifyBodyFat gender age value =
-    let
-        values =
-            thresholds gender age
-    in
-        Maybe.map (classify value) values
+    case age of
+        Nothing ->
+            Nothing
+
+        Just age_ ->
+            case value of
+                Nothing ->
+                    Nothing
+
+                Just value_ ->
+                    let
+                        values =
+                            thresholds gender age_
+                    in
+                        Maybe.map (classify value_) values
 
 
 classify : Float -> ThresholdValues -> Classification

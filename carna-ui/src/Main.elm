@@ -35,6 +35,8 @@ type alias Flags =
     { userLanguage : String }
 
 
+{-| Gender, Age Height and Weight should be stored in the model, since it is genric enough
+-}
 type alias Model =
     { count : Int
     , mdl : Material.Model
@@ -98,11 +100,18 @@ type alias BodyIndexResultRating =
     }
 
 
+type alias BodyFatIndexResultRating =
+    { threeFolds : BodyIndexSatisfaction
+    , fourFolds : BodyIndexSatisfaction
+    , sevenFolds : BodyIndexSatisfaction
+    , nineFolds : BodyIndexSatisfaction
+    }
+
+
 type Msg
     = SelectTab Int
     | BodyIndexSubmit
     | BodyFatIndexSubmit
-    | SelectGender Gender
     | Mdl (Material.Msg Msg)
     | BodyIndexChange BodyIndexMsg
     | BodyFatIndexChange BodyFatIndexMsg
@@ -118,19 +127,23 @@ type BodyIndexMsg
 
 
 type BodyFatIndexMsg
-    = SetSfiAge String
-    | SetSfiHeight String
-    | SetSfiWeight String
-    | SetSfiGender String
-    | SetSfiArmpit String
-    | SetSfiSubscapular String
-    | SetSfiChest String
-    | SetSfiTriceps String
-    | SetSfiBiceps String
-    | SetSfiAbdomen String
-    | SetSfiIliacCrest String
-    | SetSfiThigh String
-    | SetSfiCalf String
+    = SetBfiAge String
+    | SetBfiHeight String
+    | SetBfiWeight String
+    | SetBfiGender Gender
+    | SetBfiSkinfold SkinfoldMsg
+
+
+type SkinfoldMsg
+    = SetArmpit String
+    | SetSubscapular String
+    | SetChest String
+    | SetTriceps String
+    | SetBiceps String
+    | SetAbdomen String
+    | SetIliacCrest String
+    | SetThigh String
+    | SetCalf String
 
 
 type BodyIndexSatisfaction
@@ -250,14 +263,11 @@ update msg model =
                 { model | bodyIndex = newBodyIndex } ! []
 
         BodyFatIndexChange bodyFatIndexMessage ->
-            model ! []
-
-        SelectGender gender ->
             let
-                newBodyIndex =
-                    updateBodyIndex model.bodyIndex <| SetGender gender
+                newBodyFatIndex =
+                    updateBodyFatIndex model.bodyFatIndex bodyFatIndexMessage
             in
-                { model | bodyIndex = newBodyIndex } ! []
+                { model | bodyFatIndex = newBodyFatIndex } ! []
 
         SelectTab num ->
             let
@@ -296,15 +306,69 @@ updateBodyIndex bodyIndex msg =
         { newBodyIndex | isValid = validateBodyIndex newBodyIndex }
 
 
+updateBodyFatIndex : BodyFatIndex -> BodyFatIndexMsg -> BodyFatIndex
+updateBodyFatIndex bodyFatIndex msg =
+    let
+        newBodyFatIndex =
+            case msg of
+                SetBfiAge newAge ->
+                    { bodyFatIndex | age = validateAge newAge }
+
+                SetBfiHeight height ->
+                    { bodyFatIndex | height = validateHeight height }
+
+                SetBfiWeight weight ->
+                    { bodyFatIndex | weight = validateAge weight }
+
+                SetBfiGender gender ->
+                    { bodyFatIndex | gender = Just gender }
+
+                SetBfiSkinfold skinfoldMsg ->
+                    { bodyFatIndex | skinFolds = updateSkinFolds bodyFatIndex.skinFolds skinfoldMsg }
+    in
+        { newBodyFatIndex | isValid = validateBodyFatIndex newBodyFatIndex }
+
+
+updateSkinFolds : Skinfolds -> SkinfoldMsg -> Skinfolds
+updateSkinFolds skinFolds msg =
+    case msg of
+        SetChest value ->
+            { skinFolds | chest = validateFloat "chest" value }
+
+        SetArmpit value ->
+            { skinFolds | armpit = validateFloat "armpit" value }
+
+        SetSubscapular value ->
+            { skinFolds | subscapular = validateFloat "subscapular" value }
+
+        SetTriceps value ->
+            { skinFolds | triceps = validateFloat "triceps" value }
+
+        SetBiceps value ->
+            { skinFolds | biceps = validateFloat "biceps" value }
+
+        SetAbdomen value ->
+            { skinFolds | abdomen = validateFloat "abdomen" value }
+
+        SetIliacCrest value ->
+            { skinFolds | iliacCrest = validateFloat "iliac" value }
+
+        SetThigh value ->
+            { skinFolds | thigh = validateFloat "thigh" value }
+
+        SetCalf value ->
+            { skinFolds | calf = validateFloat "calf" value }
+
+
 calculateBodyFatIndexResult : BodyFatIndex -> Maybe BodyFatIndexResult
 calculateBodyFatIndexResult bfi =
     case bfi.isValid of
         True ->
             Just
                 { bodyFat1 = caliper3foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
-                , bodyFat2 = Just 19
-                , bodyFat3 = Just 20
-                , bodyFat4 = Just 21
+                , bodyFat2 = caliper4foldsNhca bfi.skinFolds bfi.age
+                , bodyFat3 = caliper7foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
+                , bodyFat4 = caliper9foldsParillo bfi.skinFolds bfi.weight
                 }
 
         False ->
@@ -367,6 +431,17 @@ validateBodyIndex bodyIndex =
         bodyIndex.weight
         bodyIndex.waist
         bodyIndex.hipSize
+        |> Result.withDefault False
+
+
+validateBodyFatIndex : BodyFatIndex -> Bool
+validateBodyFatIndex bodyFatIndex =
+    Result.map5 (\_ _ _ _ _ -> True)
+        bodyFatIndex.age
+        bodyFatIndex.height
+        bodyFatIndex.weight
+        bodyFatIndex.skinFolds.chest
+        bodyFatIndex.skinFolds.biceps
         |> Result.withDefault False
 
 
@@ -553,19 +628,19 @@ viewBodyIndexGenderSelect model =
         [ Toggles.radio Mdl
             [ 0 ]
             model.mdl
-            [ Toggles.value <| hasGender model.bodyIndex Female
-            , Toggles.group "PersonGenderRadio"
+            [ Toggles.value <| hasGender model.bodyIndex.gender Female
+            , Toggles.group "BodyIndexFormGender"
             , Toggles.ripple
-            , Options.onToggle <| SelectGender Female
+            , Options.onToggle <| (BodyIndexChange << SetGender) Female
             ]
             [ text "Female" ]
         , Toggles.radio Mdl
             [ 1 ]
             model.mdl
-            [ Toggles.value <| hasGender model.bodyIndex Male
-            , Toggles.group "PersonGenderRadio"
+            [ Toggles.value <| hasGender model.bodyIndex.gender Male
+            , Toggles.group "BodyIndexFormGender"
             , Toggles.ripple
-            , Options.onToggle <| SelectGender Male
+            , Options.onToggle <| (BodyIndexChange << SetGender) Male
             ]
             [ text "Male" ]
         ]
@@ -647,34 +722,53 @@ viewBodyIndexResultRow name value satisfaction =
         ]
 
 
+viewBodyFatIndexResulTable : BodyFatIndex -> Html Msg
+viewBodyFatIndexResulTable bodyFatIndex =
+    case bodyFatIndex.result of
+        Nothing ->
+            div [] []
 
--- viewFatResulTable : BodyFatIndex -> Html Msg
--- viewFatResulTable bodyIndex =
---     case bodyIndex.result of
---         Nothing ->
---             div [] []
---         Just result ->
---             let
---                 x =
---                     1
---                 -- bodyIndexRating =
---                 --     classifyBodyFat result (Result.toMaybe bodyIndex.age) bodyIndex.gender
---             in
---                 Table.table [ css "width" "100%", cs "body-index-result-table" ]
---                     [ Table.thead []
---                         [ Table.tr []
---                             [ Table.th [] [ text "Body index" ]
---                             , Table.th [] [ text "Value" ]
---                             , Table.th [] [ text "Rating" ]
---                             ]
---                         ]
---                     , Table.tbody []
---                         [ viewBodyIndexResultRow "3 Falten" (toString result.bodyFat1) bodyIndexRating.bmi
---                         , viewBodyIndexResultRow "4 Falten" (toString result.bodyFat2) bodyIndexRating.bai
---                         , viewBodyIndexResultRow "7 Falten" (toString result.bodyFat3) bodyIndexRating.brocaIndex
---                         , viewBodyIndexResultRow "9 Falten" (toString result.bodyFat4) bodyIndexRating.ponderalIndex
---                         ]
---                     ]
+        Just result ->
+            let
+                classification =
+                    classifyBodyFatIndex result (Result.toMaybe bodyFatIndex.age) bodyFatIndex.gender
+            in
+                Table.table [ css "width" "100%", cs "body-index-result-table" ]
+                    [ Table.thead []
+                        [ Table.tr []
+                            [ Table.th [] [ text "Body index" ]
+                            , Table.th [] [ text "Value" ]
+                            , Table.th [] [ text "Rating" ]
+                            ]
+                        ]
+                    , Table.tbody []
+                        [ viewBodyIndexResultRow "3 Falten" (viewBodyFatValue result.bodyFat1) classification.threeFolds
+                        , viewBodyIndexResultRow "4 Falten" (viewBodyFatValue result.bodyFat2) classification.fourFolds
+                        , viewBodyIndexResultRow "7 Falten" (viewBodyFatValue result.bodyFat3) classification.sevenFolds
+                        , viewBodyIndexResultRow "9 Falten" (viewBodyFatValue result.bodyFat4) classification.nineFolds
+                        ]
+                    ]
+
+
+viewBodyFatResultRow : String -> String -> BodyIndexSatisfaction -> Html Msg
+viewBodyFatResultRow name value satisfaction =
+    Table.tr
+        []
+        [ Table.td [] [ text name ]
+        , Table.td [ Table.numeric ] [ text value ]
+        , Table.td [ Table.numeric ] [ satisfactionIcon satisfaction ]
+        ]
+
+
+{-| TODO: use Classification module instead
+-}
+classifyBodyFatIndex : BodyFatIndexResult -> Maybe Age -> Maybe Gender -> BodyFatIndexResultRating
+classifyBodyFatIndex bfi age gender =
+    { threeFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat1
+    , fourFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat2
+    , sevenFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat3
+    , nineFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat4
+    }
 
 
 satisfactionIcon : BodyIndexSatisfaction -> Html Msg
@@ -705,30 +799,30 @@ satisfactionIcon satisfaction =
 
 viewBodyFatIndexForm : Model -> Html Msg
 viewBodyFatIndexForm model =
-    div [ style [ ( "padding", "3rem" ) ] ]
+    div [ style [ ( "padding", "2rem" ) ] ]
         [ viewBodyFatIndexFormGrid model ]
 
 
-viewBodyFatGenderForm : Model -> Html Msg
-viewBodyFatGenderForm model =
+viewBodyFatIndexGenderSelect : Model -> Html Msg
+viewBodyFatIndexGenderSelect model =
     div
-        []
+        [ class "gender-select" ]
         [ Toggles.radio Mdl
             [ 0 ]
             model.mdl
-            [ Toggles.value <| hasGender model.bodyIndex Female
-            , Toggles.group "PersonGenderRadio"
+            [ Toggles.value <| hasGender model.bodyFatIndex.gender Female
+            , Toggles.group "BodyFatIndexFormGender"
             , Toggles.ripple
-            , Options.onToggle <| SelectGender Female
+            , Options.onToggle <| (BodyFatIndexChange << SetBfiGender) Female
             ]
             [ text "Female" ]
         , Toggles.radio Mdl
             [ 1 ]
             model.mdl
-            [ Toggles.value <| hasGender model.bodyIndex Male
-            , Toggles.group "PersonGenderRadio"
+            [ Toggles.value <| hasGender model.bodyFatIndex.gender Male
+            , Toggles.group "BodyFatIndexFormGender"
             , Toggles.ripple
-            , Options.onToggle <| SelectGender Male
+            , Options.onToggle <| (BodyFatIndexChange << SetBfiGender) Male
             ]
             [ text "Male" ]
         ]
@@ -745,25 +839,28 @@ viewBodyFatIndexFormGrid model =
 
         skinFolds =
             model.bodyFatIndex.skinFolds
+
+        skinfoldMsgFunc =
+            BodyFatIndexChange << SetBfiSkinfold
     in
         div []
-            [ [ gridCell gridStyle [ viewBodyIndexGenderSelect model ] ] |> Grid.grid []
+            [ [ gridCell gridStyle [ viewBodyFatIndexGenderSelect model ] ] |> Grid.grid [ css "padding-bottom" "0px" ]
             , [ gridCell gridStyle
-                    [ textField model.mdl 0 "Age" (bodyFatIndex.age) (BodyFatIndexChange << SetSfiAge)
-                    , textField model.mdl 1 "Height" (bodyFatIndex.height) (BodyFatIndexChange << SetSfiHeight)
-                    , textField model.mdl 2 "Weight" (bodyFatIndex.weight) (BodyFatIndexChange << SetSfiWeight)
-                    , textField model.mdl 3 "Chest" (skinFolds.chest) (BodyFatIndexChange << SetSfiChest)
-                    , textField model.mdl 4 "Shoulderblade" (skinFolds.subscapular) (BodyFatIndexChange << SetSfiSubscapular)
-                    , textField model.mdl 5 "Armpid" (skinFolds.armpit) (BodyFatIndexChange << SetSfiArmpit)
+                    [ textField model.mdl 0 "Age" (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
+                    , textField model.mdl 1 "Height" (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
+                    , textField model.mdl 2 "Weight" (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
+                    , textField model.mdl 3 "Chest" (skinFolds.chest) (skinfoldMsgFunc << SetChest)
+                    , textField model.mdl 4 "Shoulderblade" (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
+                    , textField model.mdl 5 "Armpid" (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
                     ]
               , gridCell gridStyle
                     [ div [] [ span [] [] ]
-                    , textField model.mdl 6 "skinFolds" (skinFolds.biceps) (BodyFatIndexChange << SetSfiBiceps)
-                    , textField model.mdl 7 "Triceps" (skinFolds.triceps) (BodyFatIndexChange << SetSfiTriceps)
-                    , textField model.mdl 8 "Abdomen" (skinFolds.abdomen) (BodyFatIndexChange << SetSfiAbdomen)
-                    , textField model.mdl 9 "Hip" (skinFolds.iliacCrest) (BodyFatIndexChange << SetSfiIliacCrest)
-                    , textField model.mdl 10 "Thigh" (skinFolds.thigh) (BodyFatIndexChange << SetSfiThigh)
-                    , textField model.mdl 11 "Calf" (skinFolds.calf) (BodyFatIndexChange << SetSfiCalf)
+                    , textField model.mdl 6 "Biceps" (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
+                    , textField model.mdl 7 "Triceps" (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
+                    , textField model.mdl 8 "Abdomen" (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
+                    , textField model.mdl 9 "Hip" (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
+                    , textField model.mdl 10 "Thigh" (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
+                    , textField model.mdl 11 "Calf" (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
                     , Button.render Mdl
                         [ 5 ]
                         model.mdl
@@ -783,7 +880,7 @@ viewBodyFatIndexFormGrid model =
                         ]
                     ]
               ]
-                |> Grid.grid []
+                |> Grid.grid [ css "padding-top" "0px" ]
             ]
 
 
@@ -806,22 +903,23 @@ viewBodyFatIndexResultCard bodyFatIndex =
         [ Card.title
             []
             [ Card.head
-                [ Card.border, MColor.text MColor.white ]
+                [ MColor.text MColor.white ]
+                [ text "Your results" ]
+            , Card.subhead []
                 [ if bodyFatIndex.isValid then
-                    div [] [ text <| "Your result is " ++ (viewBodyFatValue bodyFatIndex.result) ]
+                    viewBodyFatIndexResulTable bodyFatIndex
                   else
                     div [] [ text "invalid input" ]
                 ]
-            , Card.subhead [] [ text "Subheading" ]
             ]
-        , Card.text [] [ text "card body" ]
+        , Card.text [] [ text "We hope your are making progress. Great that you try to stay healty" ]
         , Card.actions [ Card.border, MColor.text MColor.white ] [ text "card actions" ]
         ]
 
 
-viewBodyFatValue : Maybe BodyFatIndexResult -> String
+viewBodyFatValue : Maybe Float -> String
 viewBodyFatValue =
-    Maybe.withDefault "N/A" << Maybe.map (toString << .bodyFat1)
+    Maybe.withDefault "N/A" << Maybe.map toString
 
 
 textField : Mdl -> Int -> String -> Result String num -> (String -> Msg) -> Html Msg
@@ -850,10 +948,14 @@ textField mdl i label value f =
             ]
 
 
-hasGender : BodyIndex -> Gender -> Bool
-hasGender bodyIndex otherGender =
-    Maybe.map (\g -> g == otherGender) bodyIndex.gender
-        |> Maybe.withDefault False
+hasGender : Maybe Gender -> Gender -> Bool
+hasGender maybeGender otherGender =
+    case maybeGender of
+        Nothing ->
+            False
+
+        Just gender ->
+            gender == otherGender
 
 
 main : Program Flags Model Msg
