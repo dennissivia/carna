@@ -29,6 +29,8 @@ import BodyIndexClassification exposing (classifyBMI, classifyBAI, classifyBroca
 import Utils exposing (Gender(..), Classification(..), Age)
 import BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhca, caliper7foldsJp, caliper9foldsParillo)
 import BodyFatClassification exposing (..)
+import Navigation exposing (Location)
+import UrlParser exposing (Parser, QueryParser, top, (<?>), string, stringParam)
 
 
 type alias Flags =
@@ -115,6 +117,7 @@ type Msg
     | Mdl (Material.Msg Msg)
     | BodyIndexChange BodyIndexMsg
     | BodyFatIndexChange BodyFatIndexMsg
+    | UrlChange Location
 
 
 type BodyIndexMsg
@@ -146,6 +149,13 @@ type SkinfoldMsg
     | SetCalf String
 
 
+type Routes
+    = HomePage Int
+    | BodyIndexPage Int
+    | BodyFatpage Int
+    | AboutPage Int
+
+
 type BodyIndexSatisfaction
     = VerySatisfied
     | Satisfied
@@ -159,9 +169,55 @@ type alias Mdl =
     Material.Model
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    ( initialModel flags, Cmd.none )
+init : Flags -> Location -> ( Model, Cmd Msg )
+init flags location =
+    ( initialModel flags location, Cmd.none )
+
+
+initialModel : Flags -> Location -> Model
+initialModel flags location =
+    let
+        mdl =
+            Material.model
+    in
+        { count = 0
+        , mdl = Layout.setTabsWidth 200 mdl
+        , selectedTab = location2TabID location
+        , userLanguage = flags.userLanguage
+        , bodyIndex = initialBodyIndex
+        , bodyIndexSubmitted = False
+        , bodyFatIndex = initialBodyFatIndex
+        , bodyFatIndexSubmitted = False
+        }
+
+
+location2TabID : Location -> Int
+location2TabID location =
+    let
+        path =
+            UrlParser.parsePath string location
+    in
+        Maybe.map lookupTabId path
+            |> Maybe.withDefault 0
+
+
+lookupTabId : String -> Int
+lookupTabId path =
+    case path of
+        "welcome" ->
+            0
+
+        "body-index" ->
+            1
+
+        "body-fat" ->
+            2
+
+        "about" ->
+            3
+
+        _ ->
+            0
 
 
 initialBodyIndex : BodyIndex
@@ -197,23 +253,6 @@ initialBodyFatIndex =
     , result = Nothing
     , isValid = True
     }
-
-
-initialModel : Flags -> Model
-initialModel flags =
-    let
-        mdl =
-            Material.model
-    in
-        { count = 0
-        , mdl = Layout.setTabsWidth 200 mdl
-        , selectedTab = 0
-        , userLanguage = flags.userLanguage
-        , bodyIndex = initialBodyIndex
-        , bodyIndexSubmitted = False
-        , bodyFatIndex = initialBodyFatIndex
-        , bodyFatIndexSubmitted = False
-        }
 
 
 primaryColor : MColor.Hue
@@ -278,6 +317,10 @@ update msg model =
 
         Mdl msg_ ->
             Material.update Mdl msg_ model
+
+        -- FIXME
+        UrlChange newUrl ->
+            model ! []
 
 
 updateBodyIndex : BodyIndex -> BodyIndexMsg -> BodyIndex
@@ -962,7 +1005,8 @@ hasGender maybeGender otherGender =
 
 main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    Navigation.programWithFlags
+        UrlChange
         { init = init
         , view = view
         , subscriptions = always Sub.none
