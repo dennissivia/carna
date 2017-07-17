@@ -531,11 +531,8 @@ view model =
                             []
                             [ Icon.i "photo" ]
                         , Layout.link
-                            [ Layout.href "https://github.com/debois/elm-mdl" ]
+                            [ Layout.href "https://github.com/scepticulous/carna-ng" ]
                             [ span [] [ text "github" ] ]
-                        , Layout.link
-                            [ Layout.href "http://package.elm-lang.org/packages/debois/elm-mdl/latest/" ]
-                            [ text "elm-package" ]
                         ]
                     ]
                 ]
@@ -544,20 +541,24 @@ view model =
                 , Layout.navigation
                     []
                     [ Layout.link
-                        [ Layout.href "https://github.com/debois/elm-mdl" ]
+                        [ Layout.href "https://github.com/scepticulous/carna-ng" ]
                         [ text "github" ]
                     , Layout.link
-                        [ Layout.href "http://package.elm-lang.org/packages/debois/elm-mdl/latest/" ]
-                        [ text "elm-package" ]
+                        [ Layout.href "/welcome" ]
+                        [ text "welcome" ]
                     , Layout.link
-                        [ Layout.href "#cards"
-                        , Options.onClick (Layout.toggleDrawer Mdl)
-                        ]
-                        [ text "Card component" ]
+                        [ Layout.href "/body-index" ]
+                        [ text "body-index" ]
+                    , Layout.link
+                        [ Layout.href "/body-fat" ]
+                        [ text "body-fat" ]
+                    , Layout.link
+                        [ Layout.href "/about" ]
+                        [ text "about" ]
                     ]
                 ]
             , tabs =
-                ( [ text "Body Index", text "Body Fat Calc", text <| "Browser language: " ++ model.userLanguage ]
+                ( [ text "Welcome", text "Body Index", text "Body Fat Calc", text "About" ]
                 , [ MColor.background (MColor.color primaryColor MColor.S400)
                   ]
                 )
@@ -569,13 +570,19 @@ viewBody : Model -> Html Msg
 viewBody model =
     case model.selectedTab of
         0 ->
-            div [] [ viewBodyIndexForm model ]
+            div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
 
         1 ->
-            div [] [ viewBodyFatIndexForm model ]
+            div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
+
+        2 ->
+            div [ class "grid-wrap" ] [ viewBodyFatIndexForm model ]
+
+        3 ->
+            div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
 
         _ ->
-            viewBodyIndexForm model
+            div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
 
 
 gridCell : List (Style a) -> List (Html a) -> Grid.Cell a
@@ -587,7 +594,7 @@ viewBodyIndexForm : Model -> Html Msg
 viewBodyIndexForm model =
     let
         gridStyle =
-            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 5, css "padding" "2rem" ]
+            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 5 ]
     in
         [ gridCell gridStyle
             [ div
@@ -797,12 +804,6 @@ satisfactionIcon satisfaction =
                 Svg.svg svgStyle [ error_outline Color.blue 24 ]
 
 
-viewBodyFatIndexForm : Model -> Html Msg
-viewBodyFatIndexForm model =
-    div [ style [ ( "padding", "2rem" ) ] ]
-        [ viewBodyFatIndexFormGrid model ]
-
-
 viewBodyFatIndexGenderSelect : Model -> Html Msg
 viewBodyFatIndexGenderSelect model =
     div
@@ -828,8 +829,8 @@ viewBodyFatIndexGenderSelect model =
         ]
 
 
-viewBodyFatIndexFormGrid : Model -> Html Msg
-viewBodyFatIndexFormGrid model =
+viewBodyFatIndexForm : Model -> Html Msg
+viewBodyFatIndexForm model =
     let
         gridStyle =
             [ Grid.size Grid.All 12, Grid.size Grid.Desktop 4 ]
@@ -844,9 +845,10 @@ viewBodyFatIndexFormGrid model =
             BodyFatIndexChange << SetBfiSkinfold
     in
         div []
-            [ [ gridCell gridStyle [ viewBodyFatIndexGenderSelect model ] ] |> Grid.grid [ css "padding-bottom" "0px" ]
-            , [ gridCell gridStyle
-                    [ textField model.mdl 0 "Age" (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
+            -- [ [ gridCell gridStyle [ viewBodyFatIndexGenderSelect model ] ] |> Grid.grid [ css "padding-bottom" "0px" ]
+            [ [ gridCell gridStyle
+                    [ viewBodyFatIndexGenderSelect model
+                    , textField model.mdl 0 "Age" (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
                     , textField model.mdl 1 "Height" (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
                     , textField model.mdl 2 "Weight" (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
                     , textField model.mdl 3 "Chest" (skinFolds.chest) (skinfoldMsgFunc << SetChest)
@@ -880,7 +882,7 @@ viewBodyFatIndexFormGrid model =
                         ]
                     ]
               ]
-                |> Grid.grid [ css "padding-top" "0px" ]
+                |> Grid.grid []
             ]
 
 
@@ -890,7 +892,7 @@ viewBodyFatIndexResultCard bodyFatIndex =
         [ css "height" "100%"
         , css "width" "320px"
         , MColor.background (MColor.color MColor.Brown MColor.S500)
-        , Elevation.e8
+        , Elevation.e16
 
         -- , if model.raised == k then
         -- Elevation.e8

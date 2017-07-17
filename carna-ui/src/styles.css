@@ -35,3 +35,7 @@
 }
 
 .elm-overlay { z-index: 999; }
+
+.grid-wrap{
+    padding: 2rem;
+}
