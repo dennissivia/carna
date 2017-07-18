@@ -4,7 +4,6 @@ import String
 import Regex
 import String.Extra as StringExtra
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
-import Html.Attributes exposing (href, class, style, width)
 import Material
 import Material.Table as Table
 import Material.Icon as Icon
@@ -31,6 +30,9 @@ import BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhc
 import BodyFatClassification exposing (..)
 import Navigation exposing (Location)
 import UrlParser exposing (Parser, QueryParser, top, (<?>), string, stringParam)
+import Html.Attributes exposing (href, class, style, width)
+import Html.Events exposing (onWithOptions)
+import Json.Decode as Decode
 
 
 type alias Flags =
@@ -43,6 +45,7 @@ type alias Model =
     { count : Int
     , mdl : Material.Model
     , selectedTab : Int
+    , route : Route
     , userLanguage : String
     , bodyIndex : BodyIndex
     , bodyFatIndex : BodyFatIndex
@@ -118,6 +121,7 @@ type Msg
     | BodyIndexChange BodyIndexMsg
     | BodyFatIndexChange BodyFatIndexMsg
     | UrlChange Location
+    | NavigateTo Route
 
 
 type BodyIndexMsg
@@ -149,11 +153,12 @@ type SkinfoldMsg
     | SetCalf String
 
 
-type Routes
-    = HomePage Int
-    | BodyIndexPage Int
-    | BodyFatpage Int
-    | AboutPage Int
+type Route
+    = WelcomePage
+    | BodyIndexPage
+    | BodyFatPage
+    | AboutPage
+    | RouteNotFound
 
 
 type BodyIndexSatisfaction
@@ -179,10 +184,14 @@ initialModel flags location =
     let
         mdl =
             Material.model
+
+        initialRoute =
+            parseLocation location
     in
         { count = 0
         , mdl = Layout.setTabsWidth 200 mdl
-        , selectedTab = location2TabID location
+        , route = initialRoute
+        , selectedTab = routeToTabId initialRoute
         , userLanguage = flags.userLanguage
         , bodyIndex = initialBodyIndex
         , bodyIndexSubmitted = False
@@ -191,33 +200,47 @@ initialModel flags location =
         }
 
 
-location2TabID : Location -> Int
-location2TabID location =
-    let
-        path =
-            UrlParser.parsePath string location
-    in
-        Maybe.map lookupTabId path
-            |> Maybe.withDefault 0
+toUrl : Int -> String
+toUrl tabId =
+    case tabId of
+        0 ->
+            "#welcome"
 
+        1 ->
+            "#body-index"
 
-lookupTabId : String -> Int
-lookupTabId path =
-    case path of
-        "welcome" ->
-            0
+        2 ->
+            "#body-fat"
 
-        "body-index" ->
-            1
-
-        "body-fat" ->
-            2
-
-        "about" ->
-            3
+        3 ->
+            "#about"
 
         _ ->
-            0
+            "#welcome"
+
+
+routeToString : Route -> String
+routeToString route =
+    case route of
+        WelcomePage ->
+            "#welcome"
+
+        BodyIndexPage ->
+            "#body-index"
+
+        BodyFatPage ->
+            "#body-fat"
+
+        AboutPage ->
+            "#about"
+
+        RouteNotFound ->
+            ""
+
+
+changeUrl : Model -> Cmd msg
+changeUrl =
+    Navigation.newUrl << toUrl << .selectedTab
 
 
 initialBodyIndex : BodyIndex
@@ -308,19 +331,50 @@ update msg model =
             in
                 { model | bodyFatIndex = newBodyFatIndex } ! []
 
-        SelectTab num ->
-            let
-                newModel =
-                    { model | selectedTab = num }
-            in
-                newModel ! []
-
         Mdl msg_ ->
             Material.update Mdl msg_ model
 
-        -- FIXME
-        UrlChange newUrl ->
-            model ! []
+        -- FIXME how do we get the route here?
+        -- FIXME can we unify this with NavigateTo
+        SelectTab num ->
+            let
+                newRoute =
+                    tabToRoute num
+
+                newModel =
+                    { model | selectedTab = num, route = newRoute }
+
+                newUrlCmd =
+                    changeUrl newModel
+            in
+                Debug.log "SelectTab received " newModel ! [ newUrlCmd ]
+
+        -- FIXME what do we have to do here?
+        -- Handle
+        UrlChange newLocation ->
+            let
+                newRoute =
+                    parseLocation newLocation
+
+                newTab =
+                    routeToTabId newRoute
+            in
+                Debug.log ("UrlChange received with new location: " ++ (toString newLocation) ++ "and route: " ++ (toString newRoute) ++ " and new tab: " ++ (toString newTab)) { model | route = newRoute, selectedTab = newTab } ! []
+
+        --  handle link clicks within the app
+        -- FIXME what do we have to do here?
+        NavigateTo newRoute ->
+            let
+                newTab =
+                    routeToTabId newRoute
+
+                newModel =
+                    { model | route = newRoute, selectedTab = newTab }
+
+                newUrlCmd =
+                    Debug.log "change url cmd" <| changeUrl newModel
+            in
+                Debug.log "NavigateTo recieved " newModel ! [ newUrlCmd ]
 
 
 updateBodyIndex : BodyIndex -> BodyIndexMsg -> BodyIndex
@@ -587,16 +641,16 @@ view model =
                         [ Layout.href "https://github.com/scepticulous/carna-ng" ]
                         [ text "github" ]
                     , Layout.link
-                        [ Layout.href "/welcome" ]
+                        [ Layout.href "/#welcome", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "welcome" ]
                     , Layout.link
-                        [ Layout.href "/body-index" ]
+                        [ Layout.href "/#body-index", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "body-index" ]
                     , Layout.link
-                        [ Layout.href "/body-fat" ]
+                        [ Layout.href "/#body-fat", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "body-fat" ]
                     , Layout.link
-                        [ Layout.href "/about" ]
+                        [ Layout.href "/#about", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "about" ]
                     ]
                 ]
@@ -991,6 +1045,164 @@ textField mdl i label value f =
                 ]
                 []
             ]
+
+
+{-| SPA internal links that can safely prevent defaults
+-}
+internalLink : Route -> Html Msg
+internalLink route =
+    let
+        urlString =
+            routeToString route
+    in
+        Html.a [ href urlString, onLinkClick (NavigateTo route) ] [ text urlString ]
+
+
+{-| When clicking a link we want to prevent the default browser behaviour which is to load a new page.
+So we use `onWithOptions` instead of `onClick`.
+-}
+onLinkClick : msg -> Html.Attribute msg
+onLinkClick message =
+    let
+        options =
+            { stopPropagation = False
+            , preventDefault = True
+            }
+    in
+        onWithOptions "click" options (Decode.succeed message)
+
+
+{-| reduce model with new location.
+Sets current route and current tab in model
+FIXME use me in update function
+-}
+updateCurrentRoute : Model -> Location -> Model
+updateCurrentRoute model location =
+    let
+        newRoute =
+            parseLocation location
+
+        newTab =
+            routeToTabId newRoute
+    in
+        { model | route = newRoute, selectedTab = newTab }
+
+
+{-| parse initial browser location and UrlChange messages
+-}
+parseLocation : Location -> Route
+parseLocation location =
+    -- location
+    -- |> UrlParser.parsePath routeParser |>
+    Debug.log ("parse location for location: " ++ (toString location)) UrlParser.parseHash string location
+        |> Maybe.map pathToRoute
+        |> Maybe.withDefault RouteNotFound
+
+
+{-| Parse the current route based on hash urls
+-}
+
+
+
+-- routeParser : UrlParser.Parser (Route -> a) a
+-- routeParser =
+--     UrlParser.oneOf
+--         [ UrlParser.map WelcomePage UrlParser.top
+--         , UrlParser.map WelcomePage (UrlParser.s "#welcome")
+--         , UrlParser.map BodyIndexPage (UrlParser.s "#body-index")
+--         , UrlParser.map BodyFatPage (UrlParser.s "#body-fat")
+--         , UrlParser.map AboutPage (UrlParser.s "#about")
+--         ]
+
+
+location2TabID : Location -> Int
+location2TabID location =
+    let
+        path =
+            UrlParser.parseHash string location
+    in
+        Maybe.map lookupTabId path
+            |> Maybe.withDefault 0
+
+
+pathToRoute : String -> Route
+pathToRoute path =
+    let
+        newRoute =
+            case path of
+                "welcome" ->
+                    WelcomePage
+
+                "body-index" ->
+                    BodyIndexPage
+
+                "body-fat" ->
+                    BodyFatPage
+
+                "about" ->
+                    AboutPage
+
+                _ ->
+                    WelcomePage
+    in
+        Debug.log ("new route for path: " ++ (toString path)) newRoute
+
+
+lookupTabId : String -> Int
+lookupTabId path =
+    case path of
+        "#welcome" ->
+            0
+
+        "#body-index" ->
+            1
+
+        "#body-fat" ->
+            2
+
+        "#about" ->
+            3
+
+        _ ->
+            0
+
+
+routeToTabId : Route -> Int
+routeToTabId route =
+    case route of
+        WelcomePage ->
+            0
+
+        BodyIndexPage ->
+            1
+
+        BodyFatPage ->
+            2
+
+        AboutPage ->
+            3
+
+        RouteNotFound ->
+            0
+
+
+tabToRoute : Int -> Route
+tabToRoute tab =
+    case tab of
+        0 ->
+            WelcomePage
+
+        1 ->
+            BodyIndexPage
+
+        2 ->
+            BodyFatPage
+
+        3 ->
+            AboutPage
+
+        _ ->
+            WelcomePage
 
 
 hasGender : Maybe Gender -> Gender -> Bool
