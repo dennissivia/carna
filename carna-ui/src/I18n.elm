@@ -88,7 +88,7 @@ knownTranslations key =
             }
 
         Height ->
-            { german = "Groesse"
+            { german = "Grösse"
             , english = "height"
             , french = "translationMissing"
             }
@@ -100,7 +100,7 @@ knownTranslations key =
             }
 
         Hip ->
-            { german = "Hueftumfang"
+            { german = "Hüftumfang"
             , english = "hip size"
             , french = "translationMissing"
             }
@@ -112,7 +112,7 @@ knownTranslations key =
             }
 
         GenderOptionMale ->
-            { german = "maennlich"
+            { german = "männlich"
             , english = "male"
             , french = "translationMissing"
             }
@@ -232,7 +232,7 @@ knownTranslations key =
             }
 
         IliacCrest ->
-            { german = "Huefte (Iliac Crest)"
+            { german = "Hüfte (Iliac Crest)"
             , english = "hip (iliac crest)"
             , french = "translationMissing"
             }
