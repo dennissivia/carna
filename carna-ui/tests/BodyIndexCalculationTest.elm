@@ -1,7 +1,7 @@
 module BodyIndexCalculationTest exposing (..)
 
 import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, list, int, string, char)
+import Fuzz exposing (Fuzzer, list, int, float, string, char)
 import Test exposing (..)
 import Regex exposing (contains, regex)
 import BodyIndexCalculation exposing (..)
@@ -22,11 +22,11 @@ suite =
             ]
         , describe "input validation"
             [ describe "validateAge"
-                [ fuzz int "parses numbers" <|
-                    \randomInt ->
-                        (toString randomInt)
+                [ fuzz float "parses numbers" <|
+                    \randomNum ->
+                        (toString randomNum)
                             |> validateAge
-                            |> Expect.equal (Ok randomInt)
+                            |> Expect.equal (Ok randomNum)
                 , fuzz (list char) "does not accept empty strings" <|
                     \chars ->
                         case (String.trim (String.fromList chars)) of
