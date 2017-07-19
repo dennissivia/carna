@@ -39,7 +39,7 @@ suite =
                                 Expect.pass
                 , fuzz (list char) "does not accept non digit chars" <|
                     \chars ->
-                        case (contains (regex "[^-+0-9]") (String.trim <| String.fromList chars)) of
+                        case (contains (regex "[^-+.0-9]") (String.trim <| String.fromList chars)) of
                             True ->
                                 String.fromList chars
                                     |> validateAge

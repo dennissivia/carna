@@ -33,6 +33,7 @@ import UrlParser exposing (Parser, QueryParser, top, (<?>), string, stringParam)
 import Html.Attributes exposing (href, class, style, width)
 import Html.Events exposing (onWithOptions)
 import Json.Decode as Decode
+import I18n exposing (Locale(..))
 
 
 type alias Flags =
@@ -46,7 +47,7 @@ type alias Model =
     , mdl : Material.Model
     , selectedTab : Int
     , route : Route
-    , userLanguage : String
+    , locale : Locale
     , bodyIndex : BodyIndex
     , bodyFatIndex : BodyFatIndex
     , bodyFatIndexSubmitted : Bool
@@ -192,12 +193,28 @@ initialModel flags location =
         , mdl = Layout.setTabsWidth 200 mdl
         , route = initialRoute
         , selectedTab = routeToTabId initialRoute
-        , userLanguage = flags.userLanguage
+        , locale = toLocale flags.userLanguage
         , bodyIndex = initialBodyIndex
         , bodyIndexSubmitted = False
         , bodyFatIndex = initialBodyFatIndex
         , bodyFatIndexSubmitted = False
         }
+
+
+toLocale : String -> Locale
+toLocale userLanguage =
+    let
+        locale =
+            if Regex.contains (Regex.regex "de") userLanguage then
+                DE
+            else if Regex.contains (Regex.regex "en") userLanguage then
+                DE
+            else if Regex.contains (Regex.regex "fr") userLanguage then
+                FR
+            else
+                DE
+    in
+        Debug.log ("converting " ++ userLanguage ++ " to ") locale
 
 
 toUrl : Int -> String
@@ -245,12 +262,12 @@ changeUrl =
 
 initialBodyIndex : BodyIndex
 initialBodyIndex =
-    { age = Ok 27
-    , height = Ok 165.5
-    , weight = Ok 75
-    , waist = Ok 85.2
-    , hipSize = Ok 100.3
-    , gender = Nothing
+    { age = Ok 29
+    , height = Ok 178
+    , weight = Ok 65
+    , waist = Ok 78
+    , hipSize = Ok 98
+    , gender = Just Female
     , result = Nothing
     , isValid = True
     }
@@ -353,13 +370,10 @@ update msg model =
         -- Handle
         UrlChange newLocation ->
             let
-                newRoute =
-                    parseLocation newLocation
-
-                newTab =
-                    routeToTabId newRoute
+                newModel =
+                    updateCurrentRoute model newLocation
             in
-                Debug.log ("UrlChange received with new location: " ++ (toString newLocation) ++ "and route: " ++ (toString newRoute) ++ " and new tab: " ++ (toString newTab)) { model | route = newRoute, selectedTab = newTab } ! []
+                newModel ! []
 
         --  handle link clicks within the app
         -- FIXME what do we have to do here?
@@ -375,6 +389,22 @@ update msg model =
                     Debug.log "change url cmd" <| changeUrl newModel
             in
                 Debug.log "NavigateTo recieved " newModel ! [ newUrlCmd ]
+
+
+{-| reduce model with new location.
+Sets current route and current tab in model
+FIXME use me in update function
+-}
+updateCurrentRoute : Model -> Location -> Model
+updateCurrentRoute model location =
+    let
+        newRoute =
+            parseLocation location
+
+        newTab =
+            routeToTabId newRoute
+    in
+        { model | route = newRoute, selectedTab = newTab }
 
 
 updateBodyIndex : BodyIndex -> BodyIndexMsg -> BodyIndex
@@ -697,11 +727,11 @@ viewBodyIndexForm model =
             [ div
                 []
                 [ viewBodyIndexGenderSelect model
-                , textField model.mdl 0 "Age" (model.bodyIndex.age) (BodyIndexChange << SetAge)
-                , textField model.mdl 1 "Height" (model.bodyIndex.height) (BodyIndexChange << SetHeight)
-                , textField model.mdl 2 "Weight" (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
-                , textField model.mdl 3 "Waist" (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
-                , textField model.mdl 4 "Hip" (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
+                , textField model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
+                , textField model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
+                , textField model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
+                , textField model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
+                , textField model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
                 , Button.render Mdl
                     [ 5 ]
                     model.mdl
@@ -710,13 +740,13 @@ viewBodyIndexForm model =
                     , Button.ripple
                     , Options.onClick BodyIndexSubmit
                     ]
-                    [ text "Raised button" ]
+                    [ text (I18n.t model.locale I18n.CalculateBodyIndex) ]
                 ]
             ]
         , gridCell gridStyle
             [ div []
                 [ if model.bodyIndexSubmitted then
-                    div [] [ viewBodyIndexResultCard model.bodyIndex ]
+                    div [] [ viewBodyIndexResultCard model.bodyIndex model.locale ]
                   else
                     div [] []
                 ]
@@ -725,69 +755,110 @@ viewBodyIndexForm model =
             |> Grid.grid []
 
 
-viewBodyIndexGenderSelect : Model -> Html Msg
-viewBodyIndexGenderSelect model =
+viewResultCard : Html Msg -> Html Msg
+viewResultCard cardBody =
+    Card.view
+        [ cs "result-card"
+        , MColor.background (MColor.color MColor.Brown MColor.S500)
+        , Elevation.e16
+        ]
+        [ Card.title []
+            [ Card.head [] []
+            , Card.subhead [ MColor.text MColor.white ] [ text "Your results" ]
+            ]
+        , Card.text [ cs "result-table-wrap" ] [ cardBody ]
+        , Card.actions [ Card.border, MColor.text MColor.white ] []
+        ]
+
+
+viewBodyIndexResultCard : BodyIndex -> Locale -> Html Msg
+viewBodyIndexResultCard bodyIndex locale =
+    let
+        content =
+            if bodyIndex.isValid then
+                viewBodyIndexResulTable bodyIndex locale
+            else
+                div [] [ text (I18n.t locale I18n.InvalidResultContent) ]
+    in
+        viewResultCard content
+
+
+viewBodyFatIndexResultCard : BodyFatIndex -> Locale -> Html Msg
+viewBodyFatIndexResultCard bodyFatIndex locale =
+    let
+        content =
+            if bodyFatIndex.isValid then
+                viewBodyFatIndexResultTable bodyFatIndex locale
+            else
+                div [] [ text "invalid input" ]
+    in
+        viewResultCard content
+
+
+viewGenderSelect : Model -> String -> Maybe Gender -> (Gender -> Msg) -> Html Msg
+viewGenderSelect model groupName currentGender msg =
     div
         [ class "gender-select" ]
-        [ Toggles.radio Mdl
+        [ Toggles.radio
+            Mdl
             [ 0 ]
             model.mdl
-            [ Toggles.value <| hasGender model.bodyIndex.gender Female
-            , Toggles.group "BodyIndexFormGender"
+            [ Toggles.value <| hasGender currentGender Female
+            , Toggles.group groupName
             , Toggles.ripple
-            , Options.onToggle <| (BodyIndexChange << SetGender) Female
+            , Options.onToggle <| msg Female
             ]
-            [ text "Female" ]
-        , Toggles.radio Mdl
+            [ text (I18n.t model.locale I18n.GenderOptionFemale) ]
+        , Toggles.radio
+            Mdl
             [ 1 ]
             model.mdl
-            [ Toggles.value <| hasGender model.bodyIndex.gender Male
-            , Toggles.group "BodyIndexFormGender"
+            [ Toggles.value <| hasGender currentGender Male
+            , Toggles.group groupName
             , Toggles.ripple
-            , Options.onToggle <| (BodyIndexChange << SetGender) Male
+            , Options.onToggle <| msg Male
             ]
-            [ text "Male" ]
+            [ text (I18n.t model.locale I18n.GenderOptionMale) ]
         ]
 
 
-viewBodyIndexResultCard : BodyIndex -> Html Msg
-viewBodyIndexResultCard bodyIndex =
-    Card.view
-        [ css "height" "100%"
-        , css "width" "320px"
-        , MColor.background (MColor.color MColor.Brown MColor.S500)
-        , Elevation.e8
+viewBodyIndexGenderSelect : Model -> Html Msg
+viewBodyIndexGenderSelect model =
+    viewGenderSelect model "BodyIndexFormGender" model.bodyIndex.gender (BodyIndexChange << SetGender)
 
-        -- , if model.raised == k then
-        -- Elevation.e8
-        -- else
-        -- Elevation.e2
-        -- , Elevation.transition 250
-        -- , Options.onMouseEnter (Raise k)
-        -- , Options.onMouseLeave (Raise -1)
-        ]
-        [ Card.title
-            []
-            [ Card.head
-                [ MColor.text MColor.white ]
-                [ if bodyIndex.isValid then
-                    viewBodyIndexResulTable bodyIndex
-                  else
-                    div [] [ text "invalid input" ]
+
+viewBodyFatIndexGenderSelect : Model -> Html Msg
+viewBodyFatIndexGenderSelect model =
+    viewGenderSelect model "BodyFatIndexFormGender" model.bodyFatIndex.gender (BodyFatIndexChange << SetBfiGender)
+
+
+viewResultTable : Locale -> List (Html Msg) -> Html Msg
+viewResultTable locale tableBodyRows =
+    Table.table [ cs "body-index-result-table" ]
+        [ Table.thead []
+            [ Table.tr []
+                [ Table.th [] [ text (I18n.t locale I18n.BodyIndexResultColumnIndexName) ]
+                , Table.th [] [ text (I18n.t locale I18n.BodyIndexResultColumnIndexValue) ]
+                , Table.th [] [ text (I18n.t locale I18n.BodyIndexResultColumnIndexRating) ]
                 ]
             ]
+        , Table.tbody []
+            tableBodyRows
         ]
 
 
+viewResultTableRow : String -> String -> BodyIndexSatisfaction -> Html Msg
+viewResultTableRow name value satisfaction =
+    Table.tr
+        []
+        [ Table.td [] [ text name ]
+        , Table.td [ Table.numeric ] [ text value ]
+        , Table.td [ Table.numeric ] [ satisfactionIcon satisfaction ]
+        ]
 
--- faces:
--- https://material.io/icons/#ic_sentiment_dissatisfied
--- sentiment_satisfied, sentiment_dissatisfied, sentiment_neutral,
--- sentiment_very_satisfied, sentiment_very_dissatisfied
 
-
-viewBodyIndexResulTable : BodyIndex -> Html Msg
-viewBodyIndexResulTable bodyIndex =
+viewBodyIndexResulTable : BodyIndex -> Locale -> Html Msg
+viewBodyIndexResulTable bodyIndex locale =
     case bodyIndex.result of
         Nothing ->
             div [] []
@@ -796,38 +867,22 @@ viewBodyIndexResulTable bodyIndex =
             let
                 bodyIndexRating =
                     classifyBodyIndex result (Result.toMaybe bodyIndex.age) bodyIndex.gender
+
+                t_ =
+                    I18n.t locale
             in
-                Table.table [ css "width" "100%", cs "body-index-result-table" ]
-                    [ Table.thead []
-                        [ Table.tr []
-                            [ Table.th [] [ text "Body index" ]
-                            , Table.th [] [ text "Value" ]
-                            , Table.th [] [ text "Rating" ]
-                            ]
-                        ]
-                    , Table.tbody []
-                        [ viewBodyIndexResultRow "BMI WHO" (toString result.bmi) bodyIndexRating.bmi
-                        , viewBodyIndexResultRow "BAI" (toString result.bai) bodyIndexRating.bai
-                        , viewBodyIndexResultRow "Broca Index" (toString result.brocaIndex) bodyIndexRating.brocaIndex
-                        , viewBodyIndexResultRow "Ponderal Index" (toString result.ponderalIndex) bodyIndexRating.ponderalIndex
-                        , viewBodyIndexResultRow "Skin Surface Area" (toString result.surfaceArea) bodyIndexRating.surfaceArea
-                        , viewBodyIndexResultRow "Waist-Hip ratio" (toString result.whRatio) bodyIndexRating.whRatio
-                        ]
+                viewResultTable locale
+                    [ viewResultTableRow "BMI WHO" (toString result.bmi) bodyIndexRating.bmi
+                    , viewResultTableRow "BAI" (toString result.bai) bodyIndexRating.bai
+                    , viewResultTableRow "Broca Index" (toString result.brocaIndex) bodyIndexRating.brocaIndex
+                    , viewResultTableRow "Ponderal Index" (toString result.ponderalIndex) bodyIndexRating.ponderalIndex
+                    , viewResultTableRow "BSA" (toString result.surfaceArea) bodyIndexRating.surfaceArea
+                    , viewResultTableRow "Waist-Hip ratio" (toString result.whRatio) bodyIndexRating.whRatio
                     ]
 
 
-viewBodyIndexResultRow : String -> String -> BodyIndexSatisfaction -> Html Msg
-viewBodyIndexResultRow name value satisfaction =
-    Table.tr
-        []
-        [ Table.td [] [ text name ]
-        , Table.td [ Table.numeric ] [ text value ]
-        , Table.td [ Table.numeric ] [ satisfactionIcon satisfaction ]
-        ]
-
-
-viewBodyFatIndexResulTable : BodyFatIndex -> Html Msg
-viewBodyFatIndexResulTable bodyFatIndex =
+viewBodyFatIndexResultTable : BodyFatIndex -> Locale -> Html Msg
+viewBodyFatIndexResultTable bodyFatIndex locale =
     case bodyFatIndex.result of
         Nothing ->
             div [] []
@@ -836,32 +891,16 @@ viewBodyFatIndexResulTable bodyFatIndex =
             let
                 classification =
                     classifyBodyFatIndex result (Result.toMaybe bodyFatIndex.age) bodyFatIndex.gender
+
+                t_ =
+                    I18n.t locale
             in
-                Table.table [ css "width" "100%", cs "body-index-result-table" ]
-                    [ Table.thead []
-                        [ Table.tr []
-                            [ Table.th [] [ text "Body index" ]
-                            , Table.th [] [ text "Value" ]
-                            , Table.th [] [ text "Rating" ]
-                            ]
-                        ]
-                    , Table.tbody []
-                        [ viewBodyIndexResultRow "3 Falten" (viewBodyFatValue result.bodyFat1) classification.threeFolds
-                        , viewBodyIndexResultRow "4 Falten" (viewBodyFatValue result.bodyFat2) classification.fourFolds
-                        , viewBodyIndexResultRow "7 Falten" (viewBodyFatValue result.bodyFat3) classification.sevenFolds
-                        , viewBodyIndexResultRow "9 Falten" (viewBodyFatValue result.bodyFat4) classification.nineFolds
-                        ]
+                viewResultTable locale
+                    [ viewResultTableRow (t_ I18n.BodyFatMethod3Folds) (viewBodyFatValue result.bodyFat1) classification.threeFolds
+                    , viewResultTableRow (t_ I18n.BodyFatMethod4Folds) (viewBodyFatValue result.bodyFat2) classification.fourFolds
+                    , viewResultTableRow (t_ I18n.BodyFatMethod7Folds) (viewBodyFatValue result.bodyFat3) classification.sevenFolds
+                    , viewResultTableRow (t_ I18n.BodyFatMethod9Folds) (viewBodyFatValue result.bodyFat4) classification.nineFolds
                     ]
-
-
-viewBodyFatResultRow : String -> String -> BodyIndexSatisfaction -> Html Msg
-viewBodyFatResultRow name value satisfaction =
-    Table.tr
-        []
-        [ Table.td [] [ text name ]
-        , Table.td [ Table.numeric ] [ text value ]
-        , Table.td [ Table.numeric ] [ satisfactionIcon satisfaction ]
-        ]
 
 
 {-| TODO: use Classification module instead
@@ -901,36 +940,11 @@ satisfactionIcon satisfaction =
                 Svg.svg svgStyle [ error_outline Color.blue 24 ]
 
 
-viewBodyFatIndexGenderSelect : Model -> Html Msg
-viewBodyFatIndexGenderSelect model =
-    div
-        [ class "gender-select" ]
-        [ Toggles.radio Mdl
-            [ 0 ]
-            model.mdl
-            [ Toggles.value <| hasGender model.bodyFatIndex.gender Female
-            , Toggles.group "BodyFatIndexFormGender"
-            , Toggles.ripple
-            , Options.onToggle <| (BodyFatIndexChange << SetBfiGender) Female
-            ]
-            [ text "Female" ]
-        , Toggles.radio Mdl
-            [ 1 ]
-            model.mdl
-            [ Toggles.value <| hasGender model.bodyFatIndex.gender Male
-            , Toggles.group "BodyFatIndexFormGender"
-            , Toggles.ripple
-            , Options.onToggle <| (BodyFatIndexChange << SetBfiGender) Male
-            ]
-            [ text "Male" ]
-        ]
-
-
 viewBodyFatIndexForm : Model -> Html Msg
 viewBodyFatIndexForm model =
     let
         gridStyle =
-            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 4 ]
+            [ Grid.size Grid.Phone 12, Grid.size Grid.Tablet 5, Grid.size Grid.Desktop 4 ]
 
         bodyFatIndex =
             model.bodyFatIndex
@@ -940,26 +954,29 @@ viewBodyFatIndexForm model =
 
         skinfoldMsgFunc =
             BodyFatIndexChange << SetBfiSkinfold
+
+        t_ =
+            I18n.t model.locale
     in
         div []
             -- [ [ gridCell gridStyle [ viewBodyFatIndexGenderSelect model ] ] |> Grid.grid [ css "padding-bottom" "0px" ]
             [ [ gridCell gridStyle
                     [ viewBodyFatIndexGenderSelect model
-                    , textField model.mdl 0 "Age" (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
-                    , textField model.mdl 1 "Height" (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
-                    , textField model.mdl 2 "Weight" (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
-                    , textField model.mdl 3 "Chest" (skinFolds.chest) (skinfoldMsgFunc << SetChest)
-                    , textField model.mdl 4 "Shoulderblade" (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
-                    , textField model.mdl 5 "Armpid" (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
+                    , textField model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
+                    , textField model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
+                    , textField model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
+                    , textField model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
+                    , textField model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
+                    , textField model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
                     ]
               , gridCell gridStyle
                     [ div [] [ span [] [] ]
-                    , textField model.mdl 6 "Biceps" (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
-                    , textField model.mdl 7 "Triceps" (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
-                    , textField model.mdl 8 "Abdomen" (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
-                    , textField model.mdl 9 "Hip" (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
-                    , textField model.mdl 10 "Thigh" (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
-                    , textField model.mdl 11 "Calf" (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
+                    , textField model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
+                    , textField model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
+                    , textField model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
+                    , textField model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
+                    , textField model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
+                    , textField model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
                     , Button.render Mdl
                         [ 5 ]
                         model.mdl
@@ -973,7 +990,7 @@ viewBodyFatIndexForm model =
               , gridCell gridStyle
                     [ div []
                         [ if model.bodyFatIndexSubmitted then
-                            div [] [ viewBodyFatIndexResultCard model.bodyFatIndex ]
+                            div [] [ viewBodyFatIndexResultCard model.bodyFatIndex model.locale ]
                           else
                             div [] []
                         ]
@@ -981,39 +998,6 @@ viewBodyFatIndexForm model =
               ]
                 |> Grid.grid []
             ]
-
-
-viewBodyFatIndexResultCard : BodyFatIndex -> Html Msg
-viewBodyFatIndexResultCard bodyFatIndex =
-    Card.view
-        [ css "height" "100%"
-        , css "width" "320px"
-        , MColor.background (MColor.color MColor.Brown MColor.S500)
-        , Elevation.e16
-
-        -- , if model.raised == k then
-        -- Elevation.e8
-        -- else
-        -- Elevation.e2
-        -- , Elevation.transition 250
-        -- , Options.onMouseEnter (Raise k)
-        -- , Options.onMouseLeave (Raise -1)
-        ]
-        [ Card.title
-            []
-            [ Card.head
-                [ MColor.text MColor.white ]
-                [ text "Your results" ]
-            , Card.subhead []
-                [ if bodyFatIndex.isValid then
-                    viewBodyFatIndexResulTable bodyFatIndex
-                  else
-                    div [] [ text "invalid input" ]
-                ]
-            ]
-        , Card.text [] [ text "We hope your are making progress. Great that you try to stay healty" ]
-        , Card.actions [ Card.border, MColor.text MColor.white ] [ text "card actions" ]
-        ]
 
 
 viewBodyFatValue : Maybe Float -> String
@@ -1047,17 +1031,6 @@ textField mdl i label value f =
             ]
 
 
-{-| SPA internal links that can safely prevent defaults
--}
-internalLink : Route -> Html Msg
-internalLink route =
-    let
-        urlString =
-            routeToString route
-    in
-        Html.a [ href urlString, onLinkClick (NavigateTo route) ] [ text urlString ]
-
-
 {-| When clicking a link we want to prevent the default browser behaviour which is to load a new page.
 So we use `onWithOptions` instead of `onClick`.
 -}
@@ -1072,22 +1045,6 @@ onLinkClick message =
         onWithOptions "click" options (Decode.succeed message)
 
 
-{-| reduce model with new location.
-Sets current route and current tab in model
-FIXME use me in update function
--}
-updateCurrentRoute : Model -> Location -> Model
-updateCurrentRoute model location =
-    let
-        newRoute =
-            parseLocation location
-
-        newTab =
-            routeToTabId newRoute
-    in
-        { model | route = newRoute, selectedTab = newTab }
-
-
 {-| parse initial browser location and UrlChange messages
 -}
 parseLocation : Location -> Route
@@ -1099,11 +1056,8 @@ parseLocation location =
         |> Maybe.withDefault RouteNotFound
 
 
-{-| Parse the current route based on hash urls
--}
 
-
-
+-- Parse the current route based on hash urls
 -- routeParser : UrlParser.Parser (Route -> a) a
 -- routeParser =
 --     UrlParser.oneOf
@@ -1113,6 +1067,16 @@ parseLocation location =
 --         , UrlParser.map BodyFatPage (UrlParser.s "#body-fat")
 --         , UrlParser.map AboutPage (UrlParser.s "#about")
 --         ]
+-- {-| SPA internal links that can safely prevent defaults
+-- NOTE not used at the moment
+-- -}
+-- internalLink : Route -> Html Msg
+-- internalLink route =
+--     let
+--         urlString =
+--             routeToString route
+--     in
+--         Html.a [ href urlString, onLinkClick (NavigateTo route) ] [ text urlString ]
 
 
 location2TabID : Location -> Int

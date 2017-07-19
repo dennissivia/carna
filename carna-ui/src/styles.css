@@ -1,16 +1,76 @@
-@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+.elm-overlay { z-index: 999; }
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 370px) {
     .header {
         display: none!important;
     }
+
+    body{
+        color: red;
+    }
+
+    .result-card{
+        height: 100%;
+        width: 280px!important;
+    }
+
+    .body-index-result-table td{
+        text-align: center!important;
+        padding-left: 0!important;
+        padding-right: 0!important;
+    }
+
 }
 
-.header{
-    display: block;
+@media only screen and (min-device-width : 370px) and (max-device-width : 480px) {
+    .header {
+        display: none!important;
+    }
+
+    body{
+        color: pink;
+    }
+
+    .result-card{
+        /* ensure we respect the grid cell size */
+        /* width: inherit!important; */
+        height: 100%;
+        width: 320px;
+    }
+
+    .body-index-result-table td{
+        text-align: center!important;
+        padding-left: 12px!important;
+    }
 }
 
-.body-index-result-table{
-    color: black;
 
+/* everything with at least a horizontal phone size*/
+@media only screen and (min-width : 480px) {
+    .header{
+        display: block;
+    }
+    body{
+        color: green;
+    }
+
+    .grid-wrap{
+        /* looks nicer on larger screens */
+        padding: 2rem;
+    }
+    .result-card{
+        /* ensure we respect the grid cell size */
+        /* width: inherit!important; */
+        height: 100%;
+        width: 320px;
+    }
+    .body-index-result-table td{
+        text-align: center!important;
+        padding-left: 12px!important;
+        /* padding-left: 0!important; */
+        /* background-color: pink; */
+        /* padding-left: 20px; */
+    }
 }
 
 .body-index-result-table th{
@@ -18,11 +78,6 @@
     text-align: center!important;
 }
 
-.body-index-result-table td{
-    text-align: center!important;
-    /* background-color: pink; */
-    /* padding-left: 20px; */
-}
 
 .body-index-result-table td:last-of-type{
     /* color: green */
@@ -34,8 +89,14 @@
     margin-bottom: 20px;
 }
 
-.elm-overlay { z-index: 999; }
+.result-table-wrap{
+    width: 100%!important;
+    /* max-width: 420px; */
+    /* min-width: 420px; */
+}
 
-.grid-wrap{
-    padding: 2rem;
+.body-index-result-table{
+    color: black;
+    width: 100%;
+    font-size: 0.8em!important;
 }
