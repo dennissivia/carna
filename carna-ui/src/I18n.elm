@@ -34,6 +34,7 @@ type Key
     | BodyFatMethod7Folds
     | BodyFatMethod9Folds
     | InvalidResultContent
+    | YourResultHeading
 
 
 type alias TranslationRecord =
@@ -245,6 +246,12 @@ knownTranslations key =
         Calf ->
             { german = "Wade"
             , english = "calf"
+            , french = "translationMissing"
+            }
+
+        YourResultHeading ->
+            { german = "Ergebnis"
+            , english = "Your results"
             , french = "translationMissing"
             }
 

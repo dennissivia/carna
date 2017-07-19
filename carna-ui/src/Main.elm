@@ -12,7 +12,7 @@ import Material.Card as Card
 import Material.Color as MColor
 import Color
 import Material.Toggles as Toggles
-import Material.Options exposing (Style, css, cs)
+import Material.Options exposing (Style, css, cs, id)
 import Material.Grid as Grid
 import Material.Textfield as Textfield
 import Material.Layout as Layout
@@ -34,6 +34,8 @@ import Html.Attributes exposing (href, class, style, width)
 import Html.Events exposing (onWithOptions)
 import Json.Decode as Decode
 import I18n exposing (Locale(..))
+import Dom.Scroll exposing (toTop)
+import Task
 
 
 type alias Flags =
@@ -123,6 +125,7 @@ type Msg
     | BodyFatIndexChange BodyFatIndexMsg
     | UrlChange Location
     | NavigateTo Route
+    | NoOp
 
 
 type BodyIndexMsg
@@ -318,8 +321,14 @@ update msg model =
 
                 newBodyIndex =
                     { oldBodyIndex | result = newBodyIndexResult }
+
+                scrollCmd =
+                    Task.attempt (always NoOp) (toTop "result-card")
             in
-                { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex } ! []
+                { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex } ! [ scrollCmd ]
+
+        NoOp ->
+            model ! []
 
         BodyFatIndexSubmit ->
             let
@@ -755,16 +764,17 @@ viewBodyIndexForm model =
             |> Grid.grid []
 
 
-viewResultCard : Html Msg -> Html Msg
-viewResultCard cardBody =
+viewResultCard : Html Msg -> Locale -> Html Msg
+viewResultCard cardBody locale =
     Card.view
         [ cs "result-card"
+        , id "result-card"
         , MColor.background (MColor.color MColor.Brown MColor.S500)
         , Elevation.e16
         ]
         [ Card.title []
             [ Card.head [] []
-            , Card.subhead [ MColor.text MColor.white ] [ text "Your results" ]
+            , Card.subhead [ MColor.text MColor.white ] [ text (I18n.t locale I18n.YourResultHeading) ]
             ]
         , Card.text [ cs "result-table-wrap" ] [ cardBody ]
         , Card.actions [ Card.border, MColor.text MColor.white ] []
@@ -780,7 +790,7 @@ viewBodyIndexResultCard bodyIndex locale =
             else
                 div [] [ text (I18n.t locale I18n.InvalidResultContent) ]
     in
-        viewResultCard content
+        viewResultCard content locale
 
 
 viewBodyFatIndexResultCard : BodyFatIndex -> Locale -> Html Msg
@@ -792,7 +802,7 @@ viewBodyFatIndexResultCard bodyFatIndex locale =
             else
                 div [] [ text "invalid input" ]
     in
-        viewResultCard content
+        viewResultCard content locale
 
 
 viewGenderSelect : Model -> String -> Maybe Gender -> (Gender -> Msg) -> Html Msg

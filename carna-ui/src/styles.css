@@ -5,9 +5,9 @@
         display: none!important;
     }
 
-    body{
-        color: red;
-    }
+    /* body{ */
+    /*     color: red; */
+    /* } */
 
     .result-card{
         height: 100%;
@@ -27,9 +27,9 @@
         display: none!important;
     }
 
-    body{
-        color: pink;
-    }
+    /* body{ */
+    /*     color: pink; */
+    /* } */
 
     .result-card{
         /* ensure we respect the grid cell size */
@@ -50,9 +50,9 @@
     .header{
         display: block;
     }
-    body{
-        color: green;
-    }
+    /* body{ */
+    /*     color: green; */
+    /* } */
 
     .grid-wrap{
         /* looks nicer on larger screens */
@@ -85,14 +85,11 @@
 
 .gender-select label{
     margin-right: 30px;
-    /* margin-left: 30px; */
     margin-bottom: 20px;
 }
 
 .result-table-wrap{
     width: 100%!important;
-    /* max-width: 420px; */
-    /* min-width: 420px; */
 }
 
 .body-index-result-table{
