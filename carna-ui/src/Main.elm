@@ -34,7 +34,7 @@ import Html.Attributes exposing (href, class, style, width)
 import Html.Events exposing (onWithOptions)
 import Json.Decode as Decode
 import I18n exposing (Locale(..))
-import Dom.Scroll exposing (toTop)
+import Dom.Scroll
 import Task
 
 
@@ -323,7 +323,7 @@ update msg model =
                     { oldBodyIndex | result = newBodyIndexResult }
 
                 scrollCmd =
-                    Task.attempt (always NoOp) (toTop "result-card")
+                    Task.attempt (always NoOp) (Dom.Scroll.toBottom "elm-mdl-layout-main")
             in
                 { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex } ! [ scrollCmd ]
 
@@ -340,8 +340,11 @@ update msg model =
 
                 newBodyFatIndex =
                     { oldBodyFatIndex | result = newBodyFatIndexResult }
+
+                scrollCmd =
+                    Task.attempt (always NoOp) (Dom.Scroll.toBottom "elm-mdl-layout-main")
             in
-                { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex } ! []
+                { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex } ! [ scrollCmd ]
 
         BodyIndexChange bodyIndexMessage ->
             let
