@@ -9,6 +9,7 @@ import Material.Table as Table
 import Material.Icon as Icon
 import Material.Elevation as Elevation
 import Material.Card as Card
+import Material.Dialog as Dialog
 import Material.Color as MColor
 import Color
 import Material.Toggles as Toggles
@@ -193,7 +194,9 @@ initialModel flags location =
             parseLocation location
     in
         { count = 0
-        , mdl = setMdlTabScrolling mdl
+        , mdl = Layout.setTabsWidth 600 mdl
+
+        -- , mdl = setMdlTabScrolling mdl
         , route = initialRoute
         , selectedTab = routeToTabId initialRoute
         , locale = toLocale flags.userLanguage
@@ -712,7 +715,7 @@ view model =
                     ]
                 ]
             , tabs =
-                ( [ text "Welcome", text "Body Index", text "Body Fat Calc", text "About" ]
+                ( [ text "Welcome", text "Body Index", text "Body Fat", text "About" ]
                 , [ MColor.background (MColor.color primaryColor MColor.S400)
                   ]
                 )
@@ -797,6 +800,18 @@ viewResultCard cardBody locale =
         , Card.text [ cs "result-table-wrap" ] [ cardBody ]
         , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
+
+
+
+-- viewResultCard : Html Msg -> Locale -> Html Msg
+-- viewResultCard cardBody locale =
+--     Dialog.view
+--         []
+--         [ Dialog.title [] [ text (I18n.t locale I18n.YourResultHeading) ]
+--         , Dialog.content [] [ text "hello world" ]
+--         -- , Dialog.content [ cs "result-table-wrap" ] [ cardBody ]
+--         , Dialog.actions [] []
+--         ]
 
 
 viewBodyIndexResultCard : BodyIndex -> Locale -> Html Msg
