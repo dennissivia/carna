@@ -97,3 +97,7 @@
     width: 100%;
     font-size: 0.8em!important;
 }
+/* hack strange spacing away (incorrect calc) */
+.mdl-layout__tab-bar{
+    width:100%!important;
+}

@@ -193,7 +193,7 @@ initialModel flags location =
             parseLocation location
     in
         { count = 0
-        , mdl = Layout.setTabsWidth 200 mdl
+        , mdl = setMdlTabScrolling mdl
         , route = initialRoute
         , selectedTab = routeToTabId initialRoute
         , locale = toLocale flags.userLanguage
@@ -202,6 +202,21 @@ initialModel flags location =
         , bodyFatIndex = initialBodyFatIndex
         , bodyFatIndexSubmitted = False
         }
+
+
+setMdlTabScrolling : Mdl -> Mdl
+setMdlTabScrolling mdl =
+    let
+        customScrollState =
+            { canScrollLeft = False
+            , canScrollRight = False
+            , width = Just 500
+            }
+
+        layout =
+            mdl.layout
+    in
+        { mdl | layout = { layout | tabScrollState = customScrollState } }
 
 
 toLocale : String -> Locale
