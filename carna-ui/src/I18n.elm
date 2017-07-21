@@ -35,6 +35,12 @@ type Key
     | BodyFatMethod9Folds
     | InvalidResultContent
     | YourResultHeading
+    | ContentHeadBMI
+    | ContentSubheadBMI
+    | ContentBodyBMI
+    | ContentHeadCarna
+    | ContentSubHeadCarna
+    | ContentBodyCarna
 
 
 type alias TranslationRecord =
@@ -88,7 +94,7 @@ knownTranslations key =
             }
 
         Height ->
-            { german = "Grösse"
+            { german = "Größe"
             , english = "height"
             , french = "translationMissing"
             }
@@ -252,6 +258,47 @@ knownTranslations key =
         YourResultHeading ->
             { german = "Ergebnis"
             , english = "Your results"
+            , french = "translationMissing"
+            }
+
+        ContentHeadBMI ->
+            { german = "BMI - Body Mass Index"
+            , english = "BMI - Body Mass Index"
+            , french = "BMI - Body Mass Index"
+            }
+
+        ContentSubheadBMI ->
+            { german = "Zum BMI"
+            , english = "About BMI"
+            , french = "translationMissing"
+            }
+
+        ContentBodyBMI ->
+            { german = "Hier geht es um den BMI."
+            , english = "BMI is awesome, so lets be happy"
+            , french = "translationMissing"
+            }
+
+        ContentHeadCarna ->
+            { german = "Carna - Body Index"
+            , english = "Carna - Body Index"
+            , french = "Carna - Body Index"
+            }
+
+        ContentSubHeadCarna ->
+            { german = "Carna ermöglicht diverse Körper-Index Berechnungen"
+            , english = "Carna let's you calculate body indexes"
+            , french = "translationMissing"
+            }
+
+        ContentBodyCarna ->
+            { german = """
+        Mit dem Body-Index-Rechner den ist es möglich den Körperfettanteil,
+        den BMI (nach WHO),  den BAI (Body Adiposity Index),
+        das Idealgewicht nach Broca index, den Ponderal-Index,
+        das Taille-Hüft-Verhältnis und die Körperoberfläche (nach DuBois) zu berechnen.
+        """
+            , english = "translationMissing"
             , french = "translationMissing"
             }
 

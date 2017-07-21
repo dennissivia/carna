@@ -14,7 +14,7 @@ import Material.Color as MColor
 import Color
 import Material.Toggles as Toggles
 import Material.Options exposing (Style, css, cs, id)
-import Material.Grid as Grid
+import Material.Grid as Grid exposing (Device(..))
 import Material.Textfield as Textfield
 import Material.Layout as Layout
 import Material.Scheme
@@ -194,9 +194,7 @@ initialModel flags location =
             parseLocation location
     in
         { count = 0
-        , mdl = Layout.setTabsWidth 600 mdl
-
-        -- , mdl = setMdlTabScrolling mdl
+        , mdl = Layout.setTabsWidth 460 mdl
         , route = initialRoute
         , selectedTab = routeToTabId initialRoute
         , locale = toLocale flags.userLanguage
@@ -205,21 +203,6 @@ initialModel flags location =
         , bodyFatIndex = initialBodyFatIndex
         , bodyFatIndexSubmitted = False
         }
-
-
-setMdlTabScrolling : Mdl -> Mdl
-setMdlTabScrolling mdl =
-    let
-        customScrollState =
-            { canScrollLeft = False
-            , canScrollRight = False
-            , width = Just 500
-            }
-
-        layout =
-            mdl.layout
-    in
-        { mdl | layout = { layout | tabScrollState = customScrollState } }
 
 
 toLocale : String -> Locale
@@ -735,11 +718,11 @@ gridCell styling =
 viewWelcomePage : Model -> Html Msg
 viewWelcomePage model =
     let
-        ( head, subhead, content ) =
-            carnaInfo
+        cardInfo =
+            carnaInfo model.locale
     in
         div []
-            [ viewContentRow ( viewContentCard content, viewContentCard "card2", viewContentCard "card3" ) model
+            [ viewContentRow ( viewContentCard cardInfo.content, viewContentCard "card2", viewContentCard "card3" ) model
             , viewContentRow ( viewContentCard "card4", viewContentCard "card5", viewContentCard "card6" ) model
             ]
 
@@ -768,7 +751,7 @@ viewContentRow : ( Html Msg, Html Msg, Html Msg ) -> Model -> Html Msg
 viewContentRow cards model =
     let
         gridStyle =
-            [ Grid.size Grid.Phone 12, Grid.size Grid.Tablet 6, Grid.size Grid.Desktop 4 ]
+            [ Grid.size All 4 ]
 
         ( card1, card2, card3 ) =
             cards
@@ -790,7 +773,7 @@ viewBodyIndexForm : Model -> Html Msg
 viewBodyIndexForm model =
     let
         gridStyle =
-            [ Grid.size Grid.All 12, Grid.size Grid.Desktop 5 ]
+            [ Grid.size Grid.Phone 4, Grid.size Grid.Tablet 6, Grid.size Grid.Desktop 5 ]
     in
         [ gridCell gridStyle
             [ div
@@ -1026,7 +1009,8 @@ viewBodyFatIndexForm : Model -> Html Msg
 viewBodyFatIndexForm model =
     let
         gridStyle =
-            [ Grid.size Grid.Phone 12, Grid.size Grid.Tablet 5, Grid.size Grid.Desktop 4 ]
+            -- [ Grid.size Grid.Phone 12, Grid.size Grid.Tablet 5, Grid.size Grid.Desktop 4 ]
+            [ Grid.size Grid.Phone 4, Grid.size Grid.Tablet 4, Grid.size Grid.Desktop 4 ]
 
         bodyFatIndex =
             model.bodyFatIndex
@@ -1041,7 +1025,6 @@ viewBodyFatIndexForm model =
             I18n.t model.locale
     in
         div []
-            -- [ [ gridCell gridStyle [ viewBodyFatIndexGenderSelect model ] ] |> Grid.grid [ css "padding-bottom" "0px" ]
             [ [ gridCell gridStyle
                     [ viewBodyFatIndexGenderSelect model
                     , textField model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)

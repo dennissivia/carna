@@ -99,9 +99,11 @@
 }
 /* hack strange spacing away (incorrect calc) */
 .mdl-layout__tab-bar{
-    width:100%!important;
+    /* width:100%!important; */
 }
 .content-card-body-wrap{
     color: black!important;
-
+}
+.content-card{
+    width:90%!important;
 }

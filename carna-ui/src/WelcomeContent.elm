@@ -1,42 +1,46 @@
 module WelcomeContent exposing (..)
 
+import I18n exposing (Locale(..), Key(..))
+
 
 type alias CardContent =
-    ( String, Maybe String, String )
+    { head : String
+    , subhead : Maybe String
+    , content : String
+    }
 
 
-bmiInfo : CardContent
-bmiInfo =
+bmiInfo : Locale -> CardContent
+bmiInfo locale =
     let
+        t_ =
+            I18n.t locale
+
         head =
-            "About BMI"
+            t_ ContentHeadBMI
 
         subhead =
-            Nothing
+            Just <| t_ ContentSubheadBMI
 
         body =
-            """
-            BMI is awesome, so lets be happy
-            """
+            t_ ContentBodyBMI
     in
-        ( head, subhead, body )
+        CardContent head subhead body
 
 
-carnaInfo : CardContent
-carnaInfo =
+carnaInfo : Locale -> CardContent
+carnaInfo locale =
     let
+        t_ =
+            I18n.t locale
+
         head =
-            "About Carna"
+            t_ ContentHeadCarna
 
         subhead =
-            Just "Carna ermöglicht diverse Körper-Index Berechnungen"
+            Just (t_ ContentSubHeadCarna)
 
         body =
-            """
-        Mit dem Body-Index-Rechner den ist es möglich den Körperfettanteil,
-        den BMI (nach WHO),  den BAI (Body Adiposity Index),
-        das Idealgewicht nach Broca index, den Ponderal-Index,
-        das Taille-Hüft-Verhältnis und die Körperoberfläche (nach DuBois) zu berechnen.
-"""
+            t_ ContentBodyCarna
     in
-        ( head, subhead, body )
+        CardContent head subhead body
