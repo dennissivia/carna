@@ -720,10 +720,19 @@ viewWelcomePage model =
     let
         cardInfo =
             carnaInfo model.locale
+
+        cardInfo2 =
+            bmiInfo model.locale
     in
         div []
-            [ viewContentRow ( viewContentCard cardInfo.content, viewContentCard "card2", viewContentCard "card3" ) model
-            , viewContentRow ( viewContentCard "card4", viewContentCard "card5", viewContentCard "card6" ) model
+            [ viewContentRow
+                [ viewContentCard cardInfo
+                , viewContentCard cardInfo2
+                , viewContentCard cardInfo
+                , viewContentCard cardInfo2
+                , viewContentCard cardInfo
+                , viewContentCard cardInfo2
+                ]
             ]
 
 
@@ -732,40 +741,28 @@ viewWelcomePage model =
 -- head, subhead, body
 
 
-viewContentCard : String -> Html Msg
-viewContentCard content =
+viewContentCard : CardContent -> Html Msg
+viewContentCard cardData =
     Card.view
         [ cs "content-card"
         , Elevation.e16
         ]
         [ Card.title []
-            [ Card.head [] [ text "Header" ]
-            , Card.subhead [] [ text "Subhead" ]
+            [ Card.head [] [ text cardData.head ]
+            , Card.subhead [] [ text (Maybe.withDefault "" cardData.subhead) ]
             ]
-        , Card.text [ cs "content-card-body-wrap" ] [ text content ]
+        , Card.text [ cs "content-card-body-wrap" ] [ text cardData.content ]
         , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
 
 
-viewContentRow : ( Html Msg, Html Msg, Html Msg ) -> Model -> Html Msg
-viewContentRow cards model =
+viewContentRow : List (Html Msg) -> Html Msg
+viewContentRow cards =
     let
         gridStyle =
             [ Grid.size All 4 ]
-
-        ( card1, card2, card3 ) =
-            cards
     in
-        [ gridCell gridStyle
-            [ div [] [ card1 ]
-            ]
-        , gridCell gridStyle
-            [ div [] [ card2 ]
-            ]
-        , gridCell gridStyle
-            [ div [] [ card3 ]
-            ]
-        ]
+        List.map (\card -> gridCell gridStyle [ div [] [ card ] ]) cards
             |> Grid.grid []
 
 

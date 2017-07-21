@@ -287,7 +287,7 @@ knownTranslations key =
 
         ContentSubHeadCarna ->
             { german = "Carna ermöglicht diverse Körper-Index Berechnungen"
-            , english = "Carna let's you calculate body indexes"
+            , english = "Carna lets you calculate many body indexes"
             , french = "translationMissing"
             }
 
@@ -298,7 +298,12 @@ knownTranslations key =
         das Idealgewicht nach Broca index, den Ponderal-Index,
         das Taille-Hüft-Verhältnis und die Körperoberfläche (nach DuBois) zu berechnen.
         """
-            , english = "translationMissing"
+            , english = """
+        With our body index calculator, you can measure your body-fat percentage, the BMI (according to WHO),
+        the BAI (Body Adiposity Index),
+        your ideal weight (Broca index), your Ponderal-Index,
+        your waist-hip-ratio and your body surface area (according to DuBois).
+        """
             , french = "translationMissing"
             }
 
