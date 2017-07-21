@@ -211,7 +211,7 @@ toLocale userLanguage =
             if Regex.contains (Regex.regex "de") userLanguage then
                 DE
             else if Regex.contains (Regex.regex "en") userLanguage then
-                DE
+                EN
             else if Regex.contains (Regex.regex "fr") userLanguage then
                 FR
             else
@@ -281,7 +281,7 @@ initialBodyFatIndex =
     { age = Ok 27
     , height = Ok 165.5
     , weight = Ok 75
-    , gender = Nothing
+    , gender = Just Female
     , skinFolds =
         { armpit = Ok 20
         , subscapular = Ok 20
