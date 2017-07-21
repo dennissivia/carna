@@ -33,7 +33,7 @@ suite =
                             "" ->
                                 String.fromList chars
                                     |> validateAge
-                                    |> Expect.equal (Err "Age should not be empty")
+                                    |> Expect.equal (Err "should not be empty")
 
                             _ ->
                                 Expect.pass
@@ -43,7 +43,7 @@ suite =
                             True ->
                                 String.fromList chars
                                     |> validateAge
-                                    |> Expect.equal (Err "Age is not a valid number")
+                                    |> Expect.equal (Err "is not a valid number")
 
                             _ ->
                                 Expect.pass

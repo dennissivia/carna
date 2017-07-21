@@ -37,6 +37,7 @@ import Json.Decode as Decode
 import I18n exposing (Locale(..))
 import Dom.Scroll
 import Task
+import WelcomeContent exposing (..)
 
 
 type alias Flags =
@@ -162,7 +163,6 @@ type Route
     = WelcomePage
     | BodyIndexPage
     | BodyFatPage
-    | AboutPage
     | RouteNotFound
 
 
@@ -250,9 +250,6 @@ toUrl tabId =
         2 ->
             "#body-fat"
 
-        3 ->
-            "#about"
-
         _ ->
             "#welcome"
 
@@ -268,9 +265,6 @@ routeToString route =
 
         BodyFatPage ->
             "#body-fat"
-
-        AboutPage ->
-            "#about"
 
         RouteNotFound ->
             ""
@@ -301,15 +295,15 @@ initialBodyFatIndex =
     , weight = Ok 75
     , gender = Just Female
     , skinFolds =
-        { armpit = Ok 20
-        , subscapular = Ok 20
-        , chest = Ok 20
-        , triceps = Ok 20
-        , biceps = Ok 20
-        , abdomen = Ok 20
-        , iliacCrest = Ok 20
-        , thigh = Ok 20
-        , calf = Ok 20
+        { armpit = Ok 12
+        , subscapular = Ok 12
+        , chest = Ok 12
+        , triceps = Ok 12
+        , biceps = Ok 12
+        , abdomen = Ok 12
+        , iliacCrest = Ok 12
+        , thigh = Ok 12
+        , calf = Ok 12
         }
     , result = Nothing
     , isValid = True
@@ -318,7 +312,7 @@ initialBodyFatIndex =
 
 primaryColor : MColor.Hue
 primaryColor =
-    MColor.Green
+    MColor.Teal
 
 
 accentColor : MColor.Hue
@@ -648,7 +642,7 @@ validateFloat label str =
             String.toFloat str
 
         False ->
-            Err <| label ++ " is not a valid number"
+            Err <| "is not a valid number"
 
 
 validateInt : String -> String -> Result String Int
@@ -658,7 +652,7 @@ validateInt label str =
             String.toInt str
 
         False ->
-            Err <| label ++ " is not a valid number"
+            Err <| "is not a valid number"
 
 
 validatePresence : String -> String -> Result String String
@@ -666,7 +660,7 @@ validatePresence label str =
     if not (StringExtra.isBlank str) then
         Ok str
     else
-        Err <| label ++ " should not be empty"
+        Err <| "should not be empty"
 
 
 view : Model -> Html Msg
@@ -685,9 +679,6 @@ view model =
                     , Layout.spacer
                     , Layout.navigation []
                         [ Layout.link
-                            []
-                            [ Icon.i "photo" ]
-                        , Layout.link
                             [ Layout.href "https://github.com/scepticulous/carna-ng" ]
                             [ span [] [ text "github" ] ]
                         ]
@@ -709,13 +700,10 @@ view model =
                     , Layout.link
                         [ Layout.href "/#body-fat", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "body-fat" ]
-                    , Layout.link
-                        [ Layout.href "/#about", Options.onClick (Layout.toggleDrawer Mdl) ]
-                        [ text "about" ]
                     ]
                 ]
             , tabs =
-                ( [ text "Welcome", text "Body Index", text "Body Fat", text "About" ]
+                ( [ text "Welcome", text "Body Index", text "Body Fat" ]
                 , [ MColor.background (MColor.color primaryColor MColor.S400)
                   ]
                 )
@@ -727,7 +715,7 @@ viewBody : Model -> Html Msg
 viewBody model =
     case model.selectedTab of
         0 ->
-            div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
+            div [ class "grid-wrap" ] [ viewWelcomePage model ]
 
         1 ->
             div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
@@ -735,16 +723,67 @@ viewBody model =
         2 ->
             div [ class "grid-wrap" ] [ viewBodyFatIndexForm model ]
 
-        3 ->
-            div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
-
         _ ->
-            div [ class "grid-wrap" ] [ viewBodyIndexForm model ]
+            div [ class "grid-wrap" ] [ viewWelcomePage model ]
 
 
 gridCell : List (Style a) -> List (Html a) -> Grid.Cell a
 gridCell styling =
     Grid.cell <| List.concat [ styling ]
+
+
+viewWelcomePage : Model -> Html Msg
+viewWelcomePage model =
+    let
+        ( head, subhead, content ) =
+            carnaInfo
+    in
+        div []
+            [ viewContentRow ( viewContentCard content, viewContentCard "card2", viewContentCard "card3" ) model
+            , viewContentRow ( viewContentCard "card4", viewContentCard "card5", viewContentCard "card6" ) model
+            ]
+
+
+
+-- (String, String, String)
+-- head, subhead, body
+
+
+viewContentCard : String -> Html Msg
+viewContentCard content =
+    Card.view
+        [ cs "content-card"
+        , Elevation.e16
+        ]
+        [ Card.title []
+            [ Card.head [] [ text "Header" ]
+            , Card.subhead [] [ text "Subhead" ]
+            ]
+        , Card.text [ cs "content-card-body-wrap" ] [ text content ]
+        , Card.actions [ Card.border, MColor.text MColor.white ] []
+        ]
+
+
+viewContentRow : ( Html Msg, Html Msg, Html Msg ) -> Model -> Html Msg
+viewContentRow cards model =
+    let
+        gridStyle =
+            [ Grid.size Grid.Phone 12, Grid.size Grid.Tablet 6, Grid.size Grid.Desktop 4 ]
+
+        ( card1, card2, card3 ) =
+            cards
+    in
+        [ gridCell gridStyle
+            [ div [] [ card1 ]
+            ]
+        , gridCell gridStyle
+            [ div [] [ card2 ]
+            ]
+        , gridCell gridStyle
+            [ div [] [ card3 ]
+            ]
+        ]
+            |> Grid.grid []
 
 
 viewBodyIndexForm : Model -> Html Msg
@@ -790,7 +829,7 @@ viewResultCard cardBody locale =
     Card.view
         [ cs "result-card"
         , id "result-card"
-        , MColor.background (MColor.color MColor.Brown MColor.S500)
+        , MColor.background (MColor.color primaryColor MColor.S800)
         , Elevation.e16
         ]
         [ Card.title []
@@ -1108,7 +1147,6 @@ parseLocation location =
 --         , UrlParser.map WelcomePage (UrlParser.s "#welcome")
 --         , UrlParser.map BodyIndexPage (UrlParser.s "#body-index")
 --         , UrlParser.map BodyFatPage (UrlParser.s "#body-fat")
---         , UrlParser.map AboutPage (UrlParser.s "#about")
 --         ]
 -- {-| SPA internal links that can safely prevent defaults
 -- NOTE not used at the moment
@@ -1146,9 +1184,6 @@ pathToRoute path =
                 "body-fat" ->
                     BodyFatPage
 
-                "about" ->
-                    AboutPage
-
                 _ ->
                     WelcomePage
     in
@@ -1167,9 +1202,6 @@ lookupTabId path =
         "#body-fat" ->
             2
 
-        "#about" ->
-            3
-
         _ ->
             0
 
@@ -1186,9 +1218,6 @@ routeToTabId route =
         BodyFatPage ->
             2
 
-        AboutPage ->
-            3
-
         RouteNotFound ->
             0
 
@@ -1204,9 +1233,6 @@ tabToRoute tab =
 
         2 ->
             BodyFatPage
-
-        3 ->
-            AboutPage
 
         _ ->
             WelcomePage
