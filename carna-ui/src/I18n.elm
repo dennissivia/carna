@@ -268,14 +268,20 @@ knownTranslations key =
             }
 
         ContentSubheadBMI ->
-            { german = "Zum BMI"
-            , english = "About BMI"
+            { german = "BMI - Berechnen und deuten"
+            , english = "BMI - Calculate and understand"
             , french = "translationMissing"
             }
 
         ContentBodyBMI ->
-            { german = "Hier geht es um den BMI."
-            , english = "BMI is awesome, so lets be happy"
+            { german = """Der Body-Mass-Index (BMI) – ist eine Maßzahl für die Bewertung des Körpergewichts eines Menschen in Relation zu seiner Körpergröße.
+                          Er soll helfen Untergewicht, Idealgewicht und Uebergewicht zu erkennen.
+                          Der BMI ist allerdings lediglich ein grober Richtwert, da er u.A. nicht die individuelle Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe
+                          eines Menschen berücksichtigt. Dennoch wird er u.A. von Krankenkassen verwendet."""
+            , english = """The body mass index (BMI) is a value derived from the mass (weight) and height of an individual.
+                           The BMI is an attempt to quantify the amount of tissue mass (muscle, fat, and bone) in an individual, and then categorize
+                           that person as underweight, normal weight, overweight, or obese based on that value.
+                           However, there is some debate about where on the BMI scale the dividing lines between categories should be placed."""
             , french = "translationMissing"
             }
 
@@ -292,18 +298,14 @@ knownTranslations key =
             }
 
         ContentBodyCarna ->
-            { german = """
-        Mit dem Body-Index-Rechner den ist es möglich den Körperfettanteil,
+            { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich den Körperfettanteil mittels [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie"),
         den BMI (nach WHO),  den BAI (Body Adiposity Index),
         das Idealgewicht nach Broca index, den Ponderal-Index,
-        das Taille-Hüft-Verhältnis und die Körperoberfläche (nach DuBois) zu berechnen.
-        """
-            , english = """
-        With our body index calculator, you can measure your body-fat percentage, the BMI (according to WHO),
+        das Taille-Hüft-Verhältnis und die Körperoberfläche (nach DuBois) zu berechnen."""
+            , english = """With our body index calculator, you can measure your body-fat percentage, the BMI (according to WHO),
         the BAI (Body Adiposity Index),
         your ideal weight (Broca index), your Ponderal-Index,
-        your waist-hip-ratio and your body surface area (according to DuBois).
-        """
+        your waist-hip-ratio and your body surface area (according to DuBois)."""
             , french = "translationMissing"
             }
 

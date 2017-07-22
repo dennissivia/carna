@@ -38,6 +38,7 @@ import I18n exposing (Locale(..))
 import Dom.Scroll
 import Task
 import WelcomeContent exposing (..)
+import Markdown
 
 
 type alias Flags =
@@ -300,7 +301,7 @@ primaryColor =
 
 accentColor : MColor.Hue
 accentColor =
-    MColor.Yellow
+    MColor.Indigo
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -672,9 +673,6 @@ view model =
                 , Layout.navigation
                     []
                     [ Layout.link
-                        [ Layout.href "https://github.com/scepticulous/carna-ng" ]
-                        [ text "github" ]
-                    , Layout.link
                         [ Layout.href "/#welcome", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "welcome" ]
                     , Layout.link
@@ -683,6 +681,9 @@ view model =
                     , Layout.link
                         [ Layout.href "/#body-fat", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "body-fat" ]
+                    , Layout.link
+                        [ Layout.href "https://github.com/scepticulous/carna-ng" ]
+                        [ text "github" ]
                     ]
                 ]
             , tabs =
@@ -715,6 +716,11 @@ gridCell styling =
     Grid.cell <| List.concat [ styling ]
 
 
+{-|
+
+  - FIXME How can we configure grid cell size per card/content?
+  - FIXME Do we need a pair of (card, grid-columns(Num))
+-}
 viewWelcomePage : Model -> Html Msg
 viewWelcomePage model =
     let
@@ -736,9 +742,17 @@ viewWelcomePage model =
             ]
 
 
+viewContentRow : List (Html Msg) -> Html Msg
+viewContentRow cards =
+    let
+        gridStyleSmallCell =
+            [ Grid.size All 4 ]
 
--- (String, String, String)
--- head, subhead, body
+        gridStyleMediumCell =
+            [ Grid.size Phone 4, Grid.size Tablet 8, Grid.size Desktop 8 ]
+    in
+        List.map (\card -> gridCell gridStyleSmallCell [ div [] [ card ] ]) cards
+            |> Grid.grid []
 
 
 viewContentCard : CardContent -> Html Msg
@@ -751,19 +765,12 @@ viewContentCard cardData =
             [ Card.head [] [ text cardData.head ]
             , Card.subhead [] [ text (Maybe.withDefault "" cardData.subhead) ]
             ]
-        , Card.text [ cs "content-card-body-wrap" ] [ text cardData.content ]
+        , Card.text [ cs "content-card-body-wrap" ] [ (Markdown.toHtml [] cardData.content) ]
+
+        --, Card.text [ cs "content-card-body-wrap" ] [ (text cardData.content) ]
+        --, Card.text [ cs "content-card-body-wrap" ] [ Markdown.toHtml [] "<a href='https://www.google.de'>google</a>" ]
         , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
-
-
-viewContentRow : List (Html Msg) -> Html Msg
-viewContentRow cards =
-    let
-        gridStyle =
-            [ Grid.size All 4 ]
-    in
-        List.map (\card -> gridCell gridStyle [ div [] [ card ] ]) cards
-            |> Grid.grid []
 
 
 viewBodyIndexForm : Model -> Html Msg
