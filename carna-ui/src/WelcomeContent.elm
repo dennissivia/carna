@@ -44,3 +44,21 @@ carnaInfo locale =
             t_ ContentBodyCarna
     in
         CardContent head subhead body
+
+
+calipometrie : Locale -> CardContent
+calipometrie locale =
+    let
+        t_ =
+            I18n.t locale
+
+        head =
+            t_ ContentHeadCalipometrie
+
+        subhead =
+            Just <| t_ ContentSubHeadCalipometrie
+
+        body =
+            t_ ContentBodyCalipometrie
+    in
+        CardContent head subhead body

@@ -729,15 +729,19 @@ viewWelcomePage model =
 
         cardInfo2 =
             bmiInfo model.locale
+
+        cardInfo3 =
+            calipometrie model.locale
     in
         div []
             [ viewContentRow
                 [ viewContentCard cardInfo
                 , viewContentCard cardInfo2
-                , viewContentCard cardInfo
-                , viewContentCard cardInfo2
-                , viewContentCard cardInfo
-                , viewContentCard cardInfo2
+                , viewContentCard cardInfo3
+
+                -- , viewContentCard cardInfo2
+                -- , viewContentCard cardInfo
+                -- , viewContentCard cardInfo2
                 ]
             ]
 

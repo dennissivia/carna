@@ -41,6 +41,9 @@ type Key
     | ContentHeadCarna
     | ContentSubHeadCarna
     | ContentBodyCarna
+    | ContentHeadCalipometrie
+    | ContentSubHeadCalipometrie
+    | ContentBodyCalipometrie
 
 
 type alias TranslationRecord =
@@ -292,8 +295,8 @@ knownTranslations key =
             }
 
         ContentSubHeadCarna ->
-            { german = "Carna ermöglicht diverse Körper-Index Berechnungen"
-            , english = "Carna lets you calculate many body indexes"
+            { german = "Körper-Index Berechnung"
+            , english = "Calculate your body indexes"
             , french = "translationMissing"
             }
 
@@ -306,6 +309,29 @@ knownTranslations key =
         the BAI (Body Adiposity Index),
         your ideal weight (Broca index), your Ponderal-Index,
         your waist-hip-ratio and your body surface area (according to DuBois)."""
+            , french = "translationMissing"
+            }
+
+        ContentHeadCalipometrie ->
+            { german = "Calipometrie"
+            , english = "Body fat percentage"
+            , french = "Carna - Body Index"
+            }
+
+        ContentSubHeadCalipometrie ->
+            { german = "Fettanteil mittels Calipometrie berechnen"
+            , english = "Calculate your body fat percentage with a caliper"
+            , french = "translationMissing"
+            }
+
+        ContentBodyCalipometrie ->
+            { german = """Die Calipometrie (auch Kalipermetrie) ist eine Methode zur näherungsweisen Bestimmung des
+                        Körperfettanteils mittels Messung der Dicke bestimmter Hautfalten.
+                        Verschiedene Methoden unterscheiden sich vor allem darin welche Hautfalten
+                        gemessen werden."""
+            , english = """With skinfold calipers it is possible to calculate the body fat percentage by measuring
+                         the thickness of skinfolds. There are different methods which combine different sets of
+                         skinfolds and calculation factors for those."""
             , french = "translationMissing"
             }
 
