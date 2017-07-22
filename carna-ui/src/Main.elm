@@ -3,6 +3,7 @@ module Main exposing (..)
 import String
 import Regex
 import String.Extra as StringExtra
+import Result.Extra exposing (isOk)
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
 import Material
 import Material.Table as Table
@@ -13,7 +14,7 @@ import Material.Dialog as Dialog
 import Material.Color as MColor
 import Color
 import Material.Toggles as Toggles
-import Material.Options exposing (Style, css, cs, id)
+import Material.Options exposing (Style, css, cs, id, nop)
 import Material.Grid as Grid exposing (Device(..))
 import Material.Textfield as Textfield
 import Material.Layout as Layout
@@ -60,8 +61,12 @@ type alias Model =
     }
 
 
+type alias OptionalValidatedInput a =
+    Maybe (Result String a)
+
+
 type alias BodyIndex =
-    { age : Result String Age
+    { age : OptionalValidatedInput Age
     , height : Result String Float
     , weight : Result String Float
     , waist : Result String Float
@@ -94,10 +99,10 @@ type alias BodyFatIndex =
 
 
 type alias BodyFatIndexResult =
-    { bodyFat1 : Maybe Float
-    , bodyFat2 : Maybe Float
-    , bodyFat3 : Maybe Float
-    , bodyFat4 : Maybe Float
+    { bodyFat3folds : Maybe Float
+    , bodyFat4folds : Maybe Float
+    , bodyFat7folds : Maybe Float
+    , bodyFat9folds : Maybe Float
     }
 
 
@@ -261,7 +266,7 @@ changeUrl =
 
 initialBodyIndex : BodyIndex
 initialBodyIndex =
-    { age = Ok 29
+    { age = Nothing
     , height = Ok 178
     , weight = Ok 65
     , waist = Ok 78
@@ -421,7 +426,7 @@ updateBodyIndex bodyIndex msg =
         newBodyIndex =
             case msg of
                 SetAge newAge ->
-                    { bodyIndex | age = validateAge newAge }
+                    { bodyIndex | age = (Just <| validateAge newAge) }
 
                 SetHeight newHeight ->
                     { bodyIndex | height = validateHeight newHeight }
@@ -500,10 +505,10 @@ calculateBodyFatIndexResult bfi =
     case bfi.isValid of
         True ->
             Just
-                { bodyFat1 = caliper3foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
-                , bodyFat2 = caliper4foldsNhca bfi.skinFolds bfi.age
-                , bodyFat3 = caliper7foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
-                , bodyFat4 = caliper9foldsParillo bfi.skinFolds bfi.weight
+                { bodyFat3folds = caliper3foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
+                , bodyFat4folds = caliper4foldsNhca bfi.skinFolds bfi.age
+                , bodyFat7folds = caliper7foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
+                , bodyFat9folds = caliper9foldsParillo bfi.skinFolds bfi.weight
                 }
 
         False ->
@@ -558,15 +563,24 @@ classificationToSatisfaction class =
                     Dissatisfied
 
 
+{-| Old implementation:
+-- Result.map5
+-- (_ _ _ _ _ -> True)
+-- bodyIndex.age
+-- bodyIndex.height
+-- bodyIndex.weight
+-- bodyIndex.waist
+-- bodyIndex.hipSize
+-- |> Result.withDefault False
+
+  - we could do something like:
+  - List.all isOk [bodyIndex.age , bodyIndex.height , bodyIndex.weight , bodyIndex.waist , bodyIndex.hipSize]
+
+-}
 validateBodyIndex : BodyIndex -> Bool
 validateBodyIndex bodyIndex =
-    Result.map5 (\_ _ _ _ _ -> True)
-        bodyIndex.age
-        bodyIndex.height
-        bodyIndex.weight
-        bodyIndex.waist
-        bodyIndex.hipSize
-        |> Result.withDefault False
+    Maybe.map isOk bodyIndex.age
+        |> Maybe.withDefault False
 
 
 validateBodyFatIndex : BodyFatIndex -> Bool
@@ -738,10 +752,6 @@ viewWelcomePage model =
                 [ viewContentCard cardInfo
                 , viewContentCard cardInfo2
                 , viewContentCard cardInfo3
-
-                -- , viewContentCard cardInfo2
-                -- , viewContentCard cardInfo
-                -- , viewContentCard cardInfo2
                 ]
             ]
 
@@ -770,9 +780,6 @@ viewContentCard cardData =
             , Card.subhead [] [ text (Maybe.withDefault "" cardData.subhead) ]
             ]
         , Card.text [ cs "content-card-body-wrap" ] [ (Markdown.toHtml [] cardData.content) ]
-
-        --, Card.text [ cs "content-card-body-wrap" ] [ (text cardData.content) ]
-        --, Card.text [ cs "content-card-body-wrap" ] [ Markdown.toHtml [] "<a href='https://www.google.de'>google</a>" ]
         , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
 
@@ -787,7 +794,7 @@ viewBodyIndexForm model =
             [ div
                 []
                 [ viewBodyIndexGenderSelect model
-                , textField model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
+                , textField2 model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
                 , textField model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
                 , textField model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
                 , textField model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
@@ -824,24 +831,12 @@ viewResultCard cardBody locale =
         , Elevation.e16
         ]
         [ Card.title []
-            [ Card.head [] []
+            [ Card.head [ MColor.background (MColor.color primaryColor MColor.S800) ] []
             , Card.subhead [ MColor.text MColor.white ] [ text (I18n.t locale I18n.YourResultHeading) ]
             ]
         , Card.text [ cs "result-table-wrap" ] [ cardBody ]
         , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
-
-
-
--- viewResultCard : Html Msg -> Locale -> Html Msg
--- viewResultCard cardBody locale =
---     Dialog.view
---         []
---         [ Dialog.title [] [ text (I18n.t locale I18n.YourResultHeading) ]
---         , Dialog.content [] [ text "hello world" ]
---         -- , Dialog.content [ cs "result-table-wrap" ] [ cardBody ]
---         , Dialog.actions [] []
---         ]
 
 
 viewBodyIndexResultCard : BodyIndex -> Locale -> Html Msg
@@ -851,7 +846,7 @@ viewBodyIndexResultCard bodyIndex locale =
             if bodyIndex.isValid then
                 viewBodyIndexResulTable bodyIndex locale
             else
-                div [] [ text (I18n.t locale I18n.InvalidResultContent) ]
+                div [ class "invalid-result" ] [ text (I18n.t locale I18n.InvalidResultContent) ]
     in
         viewResultCard content locale
 
@@ -930,6 +925,11 @@ viewResultTableRow name value satisfaction =
         ]
 
 
+
+-- maybe result int
+-- Maybe.andThen (identity)
+
+
 viewBodyIndexResulTable : BodyIndex -> Locale -> Html Msg
 viewBodyIndexResulTable bodyIndex locale =
     case bodyIndex.result of
@@ -939,7 +939,7 @@ viewBodyIndexResulTable bodyIndex locale =
         Just result ->
             let
                 bodyIndexRating =
-                    classifyBodyIndex result (Result.toMaybe bodyIndex.age) bodyIndex.gender
+                    classifyBodyIndex result (Maybe.andThen Result.toMaybe bodyIndex.age) bodyIndex.gender
 
                 t_ =
                     I18n.t locale
@@ -969,10 +969,10 @@ viewBodyFatIndexResultTable bodyFatIndex locale =
                     I18n.t locale
             in
                 viewResultTable locale
-                    [ viewResultTableRow (t_ I18n.BodyFatMethod3Folds) (viewBodyFatValue result.bodyFat1) classification.threeFolds
-                    , viewResultTableRow (t_ I18n.BodyFatMethod4Folds) (viewBodyFatValue result.bodyFat2) classification.fourFolds
-                    , viewResultTableRow (t_ I18n.BodyFatMethod7Folds) (viewBodyFatValue result.bodyFat3) classification.sevenFolds
-                    , viewResultTableRow (t_ I18n.BodyFatMethod9Folds) (viewBodyFatValue result.bodyFat4) classification.nineFolds
+                    [ viewResultTableRow (t_ I18n.BodyFatMethod3Folds) (viewBodyFatValue result.bodyFat3folds) classification.threeFolds
+                    , viewResultTableRow (t_ I18n.BodyFatMethod4Folds) (viewBodyFatValue result.bodyFat4folds) classification.fourFolds
+                    , viewResultTableRow (t_ I18n.BodyFatMethod7Folds) (viewBodyFatValue result.bodyFat7folds) classification.sevenFolds
+                    , viewResultTableRow (t_ I18n.BodyFatMethod9Folds) (viewBodyFatValue result.bodyFat9folds) classification.nineFolds
                     ]
 
 
@@ -980,10 +980,10 @@ viewBodyFatIndexResultTable bodyFatIndex locale =
 -}
 classifyBodyFatIndex : BodyFatIndexResult -> Maybe Age -> Maybe Gender -> BodyFatIndexResultRating
 classifyBodyFatIndex bfi age gender =
-    { threeFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat1
-    , fourFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat2
-    , sevenFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat3
-    , nineFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat4
+    { threeFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat3folds
+    , fourFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat4folds
+    , sevenFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat7folds
+    , nineFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat9folds
     }
 
 
@@ -1017,7 +1017,6 @@ viewBodyFatIndexForm : Model -> Html Msg
 viewBodyFatIndexForm model =
     let
         gridStyle =
-            -- [ Grid.size Grid.Phone 12, Grid.size Grid.Tablet 5, Grid.size Grid.Desktop 4 ]
             [ Grid.size Grid.Phone 4, Grid.size Grid.Tablet 4, Grid.size Grid.Desktop 4 ]
 
         bodyFatIndex =
@@ -1088,6 +1087,37 @@ textField mdl i label value f =
 
                 Err error ->
                     Textfield.error error
+    in
+        div []
+            [ Textfield.render
+                Mdl
+                [ i ]
+                mdl
+                [ Textfield.label label
+                , Textfield.floatingLabel
+                , Textfield.text_
+                , content
+                , Options.onInput f
+                ]
+                []
+            ]
+
+
+textField2 : Mdl -> Int -> String -> OptionalValidatedInput num -> (String -> Msg) -> Html Msg
+textField2 mdl i label value f =
+    let
+        content =
+            case value of
+                Nothing ->
+                    nop
+
+                Just result ->
+                    case result of
+                        Ok num ->
+                            Textfield.value (toString num)
+
+                        Err error ->
+                            Textfield.error error
     in
         div []
             [ Textfield.render

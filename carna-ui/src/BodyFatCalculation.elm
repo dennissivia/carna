@@ -150,8 +150,9 @@ caliper7foldsJp skinFolds gender age =
 {-| Caliper9foldsParillo:
 
     def value
-      sum=@data.skinfold_chest+@data.skinfold_shoulderblade+@data.skinfold_armpit+@data.skinfold_triceps+@data.skinfold_biceps+
-        @data.skinfold_abdomen+@data.skinfold_hip+@data.skinfold_thigh+@data.skinfold_calf
+      sum=skinfold_chest+skinfold_shoulderblade+skinfold_armpit+skinfold_triceps+
+      skinfold_biceps+ skinfold_abdomen+skinfold_hip+skinfold_thigh+skinfold_calf
+
       (27 * sum / (@data.weight / 0.454))
     end
 

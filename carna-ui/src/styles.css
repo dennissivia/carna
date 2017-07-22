@@ -97,6 +97,13 @@
     width: 100%;
     font-size: 0.8em!important;
 }
+
+.invalid-result{
+    /* indigo 100 */
+    color: #C5CAE9;
+
+
+}
 /* hack strange spacing away (incorrect calc) */
 .mdl-layout__tab-bar{
     /* width:100%!important; */
