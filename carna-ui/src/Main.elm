@@ -8,7 +8,6 @@ import Maybe.Extra as MaybeExtra
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
 import Material
 import Material.Table as Table
-import Material.Icon as Icon
 import Material.Elevation as Elevation
 import Material.Card as Card
 import Material.Dialog as Dialog
@@ -432,7 +431,6 @@ update msg model =
 
 {-| reduce model with new location.
 Sets current route and current tab in model
-FIXME use me in update function
 -}
 updateCurrentRoute : Model -> Location -> Model
 updateCurrentRoute model location =
@@ -593,26 +591,34 @@ calculateBodyIndexResult bodyIndexInput =
 
 toBodyIndexValues : BodyIndexInput -> BodyIndexValues
 toBodyIndexValues input =
-    { age = MaybeExtra.join <| Maybe.map Result.toMaybe input.age
-    , height = MaybeExtra.join <| Maybe.map Result.toMaybe input.height
-    , weight = MaybeExtra.join <| Maybe.map Result.toMaybe input.weight
-    , waist = MaybeExtra.join <| Maybe.map Result.toMaybe input.waist
-    , hipSize = MaybeExtra.join <| Maybe.map Result.toMaybe input.hipSize
-    , gender = input.gender
-    }
+    let
+        toMaybe =
+            MaybeExtra.join << Maybe.map Result.toMaybe
+    in
+        { age = toMaybe input.age
+        , height = toMaybe input.height
+        , weight = toMaybe input.weight
+        , waist = toMaybe input.waist
+        , hipSize = toMaybe input.hipSize
+        , gender = input.gender
+        }
 
 
-{-| TODO: use Classification module instead
+{-| TODO: split classificatin and satisfaction conversion into two functions that are piped together
 -}
 classifyBodyIndex : BodyIndexResult -> Maybe Age -> Maybe Gender -> BodyIndexResultRating
-classifyBodyIndex bodyIndexResult age gender =
-    { bmi = classificationToSatisfaction <| classifyBMI bodyIndexResult.bmi
-    , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age <| Maybe.withDefault GenderOther gender)
-    , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
-    , ponderalIndex = classificationToSatisfaction <| Just (classifyPonderalIndex bodyIndexResult.ponderalIndex)
-    , surfaceArea = classificationToSatisfaction <| classifySurfaceArea bodyIndexResult.surfaceArea age <| Maybe.withDefault GenderOther gender
-    , whRatio = classificationToSatisfaction <| Just (classifyWaistHipRatio bodyIndexResult.whRatio <| Maybe.withDefault GenderOther gender)
-    }
+classifyBodyIndex bodyIndexResult age maybeGender =
+    let
+        gender =
+            Maybe.withDefault GenderOther maybeGender
+    in
+        { bmi = classificationToSatisfaction <| classifyBMI bodyIndexResult.bmi
+        , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age gender)
+        , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
+        , ponderalIndex = classificationToSatisfaction <| Just (classifyPonderalIndex bodyIndexResult.ponderalIndex)
+        , surfaceArea = classificationToSatisfaction <| classifySurfaceArea bodyIndexResult.surfaceArea age gender
+        , whRatio = classificationToSatisfaction <| Just (classifyWaistHipRatio bodyIndexResult.whRatio gender)
+        }
 
 
 classificationToSatisfaction : Maybe Classification -> BodyIndexSatisfaction
@@ -633,20 +639,6 @@ classificationToSatisfaction class =
                     Dissatisfied
 
 
-{-| Old implementation:
--- Result.map5
--- (_ _ _ _ _ -> True)
--- bodyIndex.age
--- bodyIndex.height
--- bodyIndex.weight
--- bodyIndex.waist
--- bodyIndex.hipSize
--- |> Result.withDefault False
-
-  - we could do something like:
-  - List.all isOk [bodyIndex.age , bodyIndex.height , bodyIndex.weight , bodyIndex.waist , bodyIndex.hipSize]
-
--}
 validateBodyIndex : BodyIndexInput -> Bool
 validateBodyIndex bodyIndex =
     Maybe.map5 (\a b c d e -> List.all isOk [ a, b, c, d, e ])
@@ -656,10 +648,6 @@ validateBodyIndex bodyIndex =
         bodyIndex.waist
         bodyIndex.hipSize
         |> Maybe.withDefault False
-
-
-
--- Maybe.map isOk bodyIndex.age |> Maybe.withDefault False
 
 
 validateBodyFatIndex : BodyFatIndex -> Bool
@@ -1054,12 +1042,16 @@ viewBodyFatIndexResultTable bodyFatIndex locale =
 {-| TODO: use Classification module instead
 -}
 classifyBodyFatIndex : BodyFatIndexResult -> Maybe Age -> Maybe Gender -> BodyFatIndexResultRating
-classifyBodyFatIndex bfi age gender =
-    { threeFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat3folds
-    , fourFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat4folds
-    , sevenFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat7folds
-    , nineFolds = classificationToSatisfaction <| classifyBodyFat (Maybe.withDefault GenderOther gender) age bfi.bodyFat9folds
-    }
+classifyBodyFatIndex bfi age maybeGender =
+    let
+        gender =
+            Maybe.withDefault GenderOther maybeGender
+    in
+        { threeFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat3folds
+        , fourFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat4folds
+        , sevenFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat7folds
+        , nineFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat9folds
+        }
 
 
 satisfactionIcon : BodyIndexSatisfaction -> Html Msg
