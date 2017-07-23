@@ -1,14 +1,14 @@
 module BodyIndexCalculation exposing (calculateBMI, calculateBAI, calculateBrocaIndex, calculatePonderalIndex, calculateSkinSurfaceArea, calculateWaistHipRatio)
 
-import Utils exposing (Gender(..), UnsafeFloat, round2)
+import Utils exposing (Gender(..), round2)
 
 
 {-| Calculate the BMI based on two Result Float inputs
 -}
-calculateBMI : UnsafeFloat -> UnsafeFloat -> Float
+calculateBMI : Maybe Float -> Maybe Float -> Float
 calculateBMI weight height =
-    Result.map2 calculateBMI_ weight height
-        |> Result.withDefault -1
+    Maybe.map2 calculateBMI_ weight height
+        |> Maybe.withDefault -1
 
 
 {-| Formula: (weight / (height / 100 ) ^ 2)
@@ -19,10 +19,10 @@ calculateBMI_ weight height =
         |> round2
 
 
-calculateBAI : UnsafeFloat -> UnsafeFloat -> Float
+calculateBAI : Maybe Float -> Maybe Float -> Float
 calculateBAI hipSize height =
-    Result.map2 calculateBAI_ hipSize height
-        |> Result.withDefault -1
+    Maybe.map2 calculateBAI_ hipSize height
+        |> Maybe.withDefault -1
 
 
 {-| <http://onlinelibrary.wiley.com/doi/10.1038/oby.2011.38/full>
@@ -33,10 +33,10 @@ calculateBAI_ hipSize height =
         |> round2
 
 
-calculateBrocaIndex : Maybe Gender -> UnsafeFloat -> Float
+calculateBrocaIndex : Maybe Gender -> Maybe Float -> Float
 calculateBrocaIndex gender height =
-    Result.map (calculateBrocaIndex_ gender) height
-        |> Result.withDefault -1
+    Maybe.map (calculateBrocaIndex_ gender) height
+        |> Maybe.withDefault -1
 
 
 {-| Formula height - 100 * (female or male factor)
@@ -57,10 +57,10 @@ calculateBrocaIndex_ gender height =
                     |> round2
 
 
-calculatePonderalIndex : UnsafeFloat -> UnsafeFloat -> Float
+calculatePonderalIndex : Maybe Float -> Maybe Float -> Float
 calculatePonderalIndex weight height =
-    Result.map2 calculatePonderalIndex_ weight height
-        |> Result.withDefault -1
+    Maybe.map2 calculatePonderalIndex_ weight height
+        |> Maybe.withDefault -1
 
 
 {-| Formula: weight / ((height / 100.0) ^ 3)
@@ -76,10 +76,10 @@ calculatePonderalIndex_ weight height =
             |> round2
 
 
-calculateSkinSurfaceArea : UnsafeFloat -> UnsafeFloat -> Float
+calculateSkinSurfaceArea : Maybe Float -> Maybe Float -> Float
 calculateSkinSurfaceArea weight height =
-    Result.map2 calculateSkinSurfaceArea_ weight height
-        |> Result.withDefault -1
+    Maybe.map2 calculateSkinSurfaceArea_ weight height
+        |> Maybe.withDefault -1
 
 
 {-| Formula (Du Bois): (0.007184* (height ^ 0.725) * (weight ^ 0.425))
@@ -100,10 +100,10 @@ calculateSkinSurfaceArea_ weight height =
             |> round2
 
 
-calculateWaistHipRatio : UnsafeFloat -> UnsafeFloat -> Float
+calculateWaistHipRatio : Maybe Float -> Maybe Float -> Float
 calculateWaistHipRatio waist hipSize =
-    Result.map2 calculateWaistHipRatio_ waist hipSize
-        |> Result.withDefault -1
+    Maybe.map2 calculateWaistHipRatio_ waist hipSize
+        |> Maybe.withDefault -1
 
 
 {-| Formula: waist / hipSize

@@ -4,6 +4,7 @@ import String
 import Regex
 import String.Extra as StringExtra
 import Result.Extra exposing (isOk)
+import Maybe.Extra as MaybeExtra
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
 import Material
 import Material.Table as Table
@@ -54,7 +55,7 @@ type alias Model =
     , selectedTab : Int
     , route : Route
     , locale : Locale
-    , bodyIndex : BodyIndex
+    , bodyIndex : BodyIndexInput
     , bodyFatIndex : BodyFatIndex
     , bodyFatIndexSubmitted : Bool
     , bodyIndexSubmitted : Bool
@@ -65,15 +66,25 @@ type alias OptionalValidatedInput a =
     Maybe (Result String a)
 
 
-type alias BodyIndex =
+type alias BodyIndexInput =
     { age : OptionalValidatedInput Age
-    , height : Result String Float
-    , weight : Result String Float
-    , waist : Result String Float
-    , hipSize : Result String Float
+    , height : OptionalValidatedInput Float
+    , weight : OptionalValidatedInput Float
+    , waist : OptionalValidatedInput Float
+    , hipSize : OptionalValidatedInput Float
     , gender : Maybe Gender
     , result : Maybe BodyIndexResult
     , isValid : Bool
+    }
+
+
+type alias BodyIndexValues =
+    { age : Maybe Age
+    , height : Maybe Float
+    , weight : Maybe Float
+    , waist : Maybe Float
+    , hipSize : Maybe Float
+    , gender : Maybe Gender
     }
 
 
@@ -88,21 +99,13 @@ type alias BodyIndexResult =
 
 
 type alias BodyFatIndex =
-    { age : Result String Age
-    , height : Result String Float
-    , weight : Result String Float
+    { age : OptionalValidatedInput Age
+    , height : OptionalValidatedInput Float
+    , weight : OptionalValidatedInput Float
     , gender : Maybe Gender
-    , skinFolds : Skinfolds
+    , skinFolds : SkinfoldInput
     , result : Maybe BodyFatIndexResult
     , isValid : Bool
-    }
-
-
-type alias BodyFatIndexResult =
-    { bodyFat3folds : Maybe Float
-    , bodyFat4folds : Maybe Float
-    , bodyFat7folds : Maybe Float
-    , bodyFat9folds : Maybe Float
     }
 
 
@@ -113,6 +116,29 @@ type alias BodyIndexResultRating =
     , ponderalIndex : BodyIndexSatisfaction
     , surfaceArea : BodyIndexSatisfaction
     , whRatio : BodyIndexSatisfaction
+    }
+
+
+{-| used for getting /storing input and presenting errors
+-}
+type alias SkinfoldInput =
+    { armpit : Maybe (Result String Float)
+    , subscapular : Maybe (Result String Float) -- shoulder blade
+    , chest : Maybe (Result String Float)
+    , triceps : Maybe (Result String Float)
+    , biceps : Maybe (Result String Float)
+    , abdomen : Maybe (Result String Float)
+    , iliacCrest : Maybe (Result String Float) -- Hip
+    , thigh : Maybe (Result String Float)
+    , calf : Maybe (Result String Float)
+    }
+
+
+type alias BodyFatIndexResult =
+    { bodyFat3folds : Maybe Float
+    , bodyFat4folds : Maybe Float
+    , bodyFat7folds : Maybe Float
+    , bodyFat9folds : Maybe Float
     }
 
 
@@ -264,38 +290,38 @@ changeUrl =
     Navigation.newUrl << toUrl << .selectedTab
 
 
-initialBodyIndex : BodyIndex
+initialBodyIndex : BodyIndexInput
 initialBodyIndex =
     { age = Nothing
-    , height = Ok 178
-    , weight = Ok 65
-    , waist = Ok 78
-    , hipSize = Ok 98
-    , gender = Just Female
+    , height = Nothing
+    , weight = Nothing
+    , waist = Nothing
+    , hipSize = Nothing
+    , gender = Nothing
     , result = Nothing
-    , isValid = True
+    , isValid = False
     }
 
 
 initialBodyFatIndex : BodyFatIndex
 initialBodyFatIndex =
-    { age = Ok 27
-    , height = Ok 165.5
-    , weight = Ok 75
-    , gender = Just Female
+    { age = Nothing
+    , height = Nothing
+    , weight = Nothing
+    , gender = Nothing
     , skinFolds =
-        { armpit = Ok 12
-        , subscapular = Ok 12
-        , chest = Ok 12
-        , triceps = Ok 12
-        , biceps = Ok 12
-        , abdomen = Ok 12
-        , iliacCrest = Ok 12
-        , thigh = Ok 12
-        , calf = Ok 12
+        { armpit = Nothing
+        , subscapular = Nothing
+        , chest = Nothing
+        , triceps = Nothing
+        , biceps = Nothing
+        , abdomen = Nothing
+        , iliacCrest = Nothing
+        , thigh = Nothing
+        , calf = Nothing
         }
     , result = Nothing
-    , isValid = True
+    , isValid = False
     }
 
 
@@ -420,7 +446,7 @@ updateCurrentRoute model location =
         { model | route = newRoute, selectedTab = newTab }
 
 
-updateBodyIndex : BodyIndex -> BodyIndexMsg -> BodyIndex
+updateBodyIndex : BodyIndexInput -> BodyIndexMsg -> BodyIndexInput
 updateBodyIndex bodyIndex msg =
     let
         newBodyIndex =
@@ -429,16 +455,16 @@ updateBodyIndex bodyIndex msg =
                     { bodyIndex | age = (Just <| validateAge newAge) }
 
                 SetHeight newHeight ->
-                    { bodyIndex | height = validateHeight newHeight }
+                    { bodyIndex | height = (Just <| validateHeight newHeight) }
 
                 SetWeight newWeight ->
-                    { bodyIndex | weight = validateWeight newWeight }
+                    { bodyIndex | weight = (Just <| validateWeight newWeight) }
 
                 SetWaist newWaist ->
-                    { bodyIndex | waist = validateWaist newWaist }
+                    { bodyIndex | waist = (Just <| validateWaist newWaist) }
 
                 SetHip newHip ->
-                    { bodyIndex | hipSize = validateHip newHip }
+                    { bodyIndex | hipSize = (Just <| validateHip newHip) }
 
                 SetGender gender ->
                     { bodyIndex | gender = Just gender }
@@ -452,13 +478,13 @@ updateBodyFatIndex bodyFatIndex msg =
         newBodyFatIndex =
             case msg of
                 SetBfiAge newAge ->
-                    { bodyFatIndex | age = validateAge newAge }
+                    { bodyFatIndex | age = (Just <| validateAge newAge) }
 
                 SetBfiHeight height ->
-                    { bodyFatIndex | height = validateHeight height }
+                    { bodyFatIndex | height = (Just <| validateHeight height) }
 
                 SetBfiWeight weight ->
-                    { bodyFatIndex | weight = validateAge weight }
+                    { bodyFatIndex | weight = (Just <| validateAge weight) }
 
                 SetBfiGender gender ->
                     { bodyFatIndex | gender = Just gender }
@@ -469,67 +495,111 @@ updateBodyFatIndex bodyFatIndex msg =
         { newBodyFatIndex | isValid = validateBodyFatIndex newBodyFatIndex }
 
 
-updateSkinFolds : Skinfolds -> SkinfoldMsg -> Skinfolds
+updateSkinFolds : SkinfoldInput -> SkinfoldMsg -> SkinfoldInput
 updateSkinFolds skinFolds msg =
     case msg of
         SetChest value ->
-            { skinFolds | chest = validateFloat "chest" value }
+            { skinFolds | chest = Just <| validateFloat "chest" value }
 
         SetArmpit value ->
-            { skinFolds | armpit = validateFloat "armpit" value }
+            { skinFolds | armpit = Just <| validateFloat "armpit" value }
 
         SetSubscapular value ->
-            { skinFolds | subscapular = validateFloat "subscapular" value }
+            { skinFolds | subscapular = Just <| validateFloat "subscapular" value }
 
         SetTriceps value ->
-            { skinFolds | triceps = validateFloat "triceps" value }
+            { skinFolds | triceps = Just <| validateFloat "triceps" value }
 
         SetBiceps value ->
-            { skinFolds | biceps = validateFloat "biceps" value }
+            { skinFolds | biceps = Just <| validateFloat "biceps" value }
 
         SetAbdomen value ->
-            { skinFolds | abdomen = validateFloat "abdomen" value }
+            { skinFolds | abdomen = Just <| validateFloat "abdomen" value }
 
         SetIliacCrest value ->
-            { skinFolds | iliacCrest = validateFloat "iliac" value }
+            { skinFolds | iliacCrest = Just <| validateFloat "iliac" value }
 
         SetThigh value ->
-            { skinFolds | thigh = validateFloat "thigh" value }
+            { skinFolds | thigh = Just <| validateFloat "thigh" value }
 
         SetCalf value ->
-            { skinFolds | calf = validateFloat "calf" value }
+            { skinFolds | calf = Just <| validateFloat "calf" value }
+
+
+optionalToMaybe : OptionalValidatedInput a -> Maybe a
+optionalToMaybe optional =
+    MaybeExtra.join <| Maybe.map Result.toMaybe optional
+
+
+toSkinfoldValues : SkinfoldInput -> Skinfolds
+toSkinfoldValues skinfoldInput =
+    { armpit = optionalToMaybe skinfoldInput.armpit
+    , subscapular = optionalToMaybe skinfoldInput.subscapular
+    , chest = optionalToMaybe skinfoldInput.chest
+    , triceps = optionalToMaybe skinfoldInput.triceps
+    , biceps = optionalToMaybe skinfoldInput.biceps
+    , abdomen = optionalToMaybe skinfoldInput.abdomen
+    , iliacCrest = optionalToMaybe skinfoldInput.iliacCrest
+    , thigh = optionalToMaybe skinfoldInput.thigh
+    , calf = optionalToMaybe skinfoldInput.calf
+    }
 
 
 calculateBodyFatIndexResult : BodyFatIndex -> Maybe BodyFatIndexResult
 calculateBodyFatIndexResult bfi =
-    case bfi.isValid of
-        True ->
-            Just
-                { bodyFat3folds = caliper3foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
-                , bodyFat4folds = caliper4foldsNhca bfi.skinFolds bfi.age
-                , bodyFat7folds = caliper7foldsJp bfi.skinFolds (Maybe.withDefault GenderOther bfi.gender) bfi.age
-                , bodyFat9folds = caliper9foldsParillo bfi.skinFolds bfi.weight
-                }
+    let
+        skinfolds =
+            toSkinfoldValues bfi.skinFolds
 
-        False ->
-            Nothing
+        age =
+            optionalToMaybe bfi.age
+
+        weight =
+            optionalToMaybe bfi.weight
+    in
+        case bfi.isValid of
+            True ->
+                Just
+                    { bodyFat3folds = caliper3foldsJp skinfolds (Maybe.withDefault GenderOther bfi.gender) age
+                    , bodyFat4folds = caliper4foldsNhca skinfolds age
+                    , bodyFat7folds = caliper7foldsJp skinfolds (Maybe.withDefault GenderOther bfi.gender) age
+                    , bodyFat9folds = caliper9foldsParillo skinfolds weight
+                    }
+
+            False ->
+                Nothing
 
 
-calculateBodyIndexResult : BodyIndex -> Maybe BodyIndexResult
-calculateBodyIndexResult bodyIndex =
-    case bodyIndex.isValid of
-        True ->
-            Just
-                { bmi = calculateBMI bodyIndex.weight bodyIndex.height
-                , bai = calculateBAI bodyIndex.hipSize bodyIndex.height
-                , brocaIndex = calculateBrocaIndex bodyIndex.gender bodyIndex.height
-                , ponderalIndex = calculatePonderalIndex bodyIndex.weight bodyIndex.height
-                , surfaceArea = calculateSkinSurfaceArea bodyIndex.weight bodyIndex.height
-                , whRatio = calculateWaistHipRatio bodyIndex.waist bodyIndex.hipSize
-                }
+calculateBodyIndexResult : BodyIndexInput -> Maybe BodyIndexResult
+calculateBodyIndexResult bodyIndexInput =
+    let
+        bodyIndexValues =
+            toBodyIndexValues bodyIndexInput
+    in
+        case bodyIndexInput.isValid of
+            True ->
+                Just
+                    { bmi = calculateBMI bodyIndexValues.weight bodyIndexValues.height
+                    , bai = calculateBAI bodyIndexValues.hipSize bodyIndexValues.height
+                    , brocaIndex = calculateBrocaIndex bodyIndexValues.gender bodyIndexValues.height
+                    , ponderalIndex = calculatePonderalIndex bodyIndexValues.weight bodyIndexValues.height
+                    , surfaceArea = calculateSkinSurfaceArea bodyIndexValues.weight bodyIndexValues.height
+                    , whRatio = calculateWaistHipRatio bodyIndexValues.waist bodyIndexValues.hipSize
+                    }
 
-        False ->
-            Nothing
+            False ->
+                Nothing
+
+
+toBodyIndexValues : BodyIndexInput -> BodyIndexValues
+toBodyIndexValues input =
+    { age = MaybeExtra.join <| Maybe.map Result.toMaybe input.age
+    , height = MaybeExtra.join <| Maybe.map Result.toMaybe input.height
+    , weight = MaybeExtra.join <| Maybe.map Result.toMaybe input.weight
+    , waist = MaybeExtra.join <| Maybe.map Result.toMaybe input.waist
+    , hipSize = MaybeExtra.join <| Maybe.map Result.toMaybe input.hipSize
+    , gender = input.gender
+    }
 
 
 {-| TODO: use Classification module instead
@@ -577,21 +647,28 @@ classificationToSatisfaction class =
   - List.all isOk [bodyIndex.age , bodyIndex.height , bodyIndex.weight , bodyIndex.waist , bodyIndex.hipSize]
 
 -}
-validateBodyIndex : BodyIndex -> Bool
+validateBodyIndex : BodyIndexInput -> Bool
 validateBodyIndex bodyIndex =
-    Maybe.map isOk bodyIndex.age
+    Maybe.map5 (\a b c d e -> List.all isOk [ a, b, c, d, e ])
+        bodyIndex.age
+        bodyIndex.height
+        bodyIndex.weight
+        bodyIndex.waist
+        bodyIndex.hipSize
         |> Maybe.withDefault False
+
+
+
+-- Maybe.map isOk bodyIndex.age |> Maybe.withDefault False
 
 
 validateBodyFatIndex : BodyFatIndex -> Bool
 validateBodyFatIndex bodyFatIndex =
-    Result.map5 (\_ _ _ _ _ -> True)
+    Maybe.map3 (\a b c -> List.all isOk [ a, b, c ])
         bodyFatIndex.age
         bodyFatIndex.height
         bodyFatIndex.weight
-        bodyFatIndex.skinFolds.chest
-        bodyFatIndex.skinFolds.biceps
-        |> Result.withDefault False
+        |> Maybe.withDefault False
 
 
 validateAge : String -> Result String Age
@@ -795,10 +872,10 @@ viewBodyIndexForm model =
                 []
                 [ viewBodyIndexGenderSelect model
                 , textField2 model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
-                , textField model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
-                , textField model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
-                , textField model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
-                , textField model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
+                , textField2 model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
+                , textField2 model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
+                , textField2 model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
+                , textField2 model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
                 , Button.render Mdl
                     [ 5 ]
                     model.mdl
@@ -839,7 +916,7 @@ viewResultCard cardBody locale =
         ]
 
 
-viewBodyIndexResultCard : BodyIndex -> Locale -> Html Msg
+viewBodyIndexResultCard : BodyIndexInput -> Locale -> Html Msg
 viewBodyIndexResultCard bodyIndex locale =
     let
         content =
@@ -858,7 +935,7 @@ viewBodyFatIndexResultCard bodyFatIndex locale =
             if bodyFatIndex.isValid then
                 viewBodyFatIndexResultTable bodyFatIndex locale
             else
-                div [] [ text "invalid input" ]
+                div [] [ text (I18n.t locale I18n.InvalidResultContent) ]
     in
         viewResultCard content locale
 
@@ -925,12 +1002,7 @@ viewResultTableRow name value satisfaction =
         ]
 
 
-
--- maybe result int
--- Maybe.andThen (identity)
-
-
-viewBodyIndexResulTable : BodyIndex -> Locale -> Html Msg
+viewBodyIndexResulTable : BodyIndexInput -> Locale -> Html Msg
 viewBodyIndexResulTable bodyIndex locale =
     case bodyIndex.result of
         Nothing ->
@@ -962,8 +1034,11 @@ viewBodyFatIndexResultTable bodyFatIndex locale =
 
         Just result ->
             let
+                maybeAge =
+                    optionalToMaybe bodyFatIndex.age
+
                 classification =
-                    classifyBodyFatIndex result (Result.toMaybe bodyFatIndex.age) bodyFatIndex.gender
+                    classifyBodyFatIndex result maybeAge bodyFatIndex.gender
 
                 t_ =
                     I18n.t locale
@@ -1034,21 +1109,21 @@ viewBodyFatIndexForm model =
         div []
             [ [ gridCell gridStyle
                     [ viewBodyFatIndexGenderSelect model
-                    , textField model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
-                    , textField model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
-                    , textField model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
-                    , textField model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
-                    , textField model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
-                    , textField model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
+                    , textField2 model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
+                    , textField2 model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
+                    , textField2 model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
+                    , textField2 model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
+                    , textField2 model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
+                    , textField2 model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
                     ]
               , gridCell gridStyle
                     [ div [] [ span [] [] ]
-                    , textField model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
-                    , textField model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
-                    , textField model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
-                    , textField model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
-                    , textField model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
-                    , textField model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
+                    , textField2 model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
+                    , textField2 model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
+                    , textField2 model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
+                    , textField2 model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
+                    , textField2 model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
+                    , textField2 model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
                     , Button.render Mdl
                         [ 5 ]
                         model.mdl

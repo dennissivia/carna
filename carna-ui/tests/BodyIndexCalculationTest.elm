@@ -15,10 +15,10 @@ suite =
             -- Nest as many descriptions as you like.
             [ test "Calculates an average BMI" <|
                 \() ->
-                    Expect.equal (calculateBMI (Ok 78) (Ok 178)) 24.62
+                    Expect.equal (calculateBMI (Just 78) (Just 178)) 24.62
             , test "0 height is handled" <|
                 \() ->
-                    Expect.equal True (isInfinite <| calculateBMI (Ok 78) (Ok 0))
+                    Expect.equal True (isInfinite <| calculateBMI (Just 78) (Just 0))
             ]
         , describe "input validation"
             [ describe "validateAge"

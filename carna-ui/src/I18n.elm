@@ -85,32 +85,32 @@ knownTranslations : Key -> TranslationRecord
 knownTranslations key =
     case key of
         Age ->
-            { german = "Alter"
-            , english = "age"
+            { german = "Alter (Jahre)"
+            , english = "age (years)"
             , french = "âge"
             }
 
         Weight ->
-            { german = "Gewicht"
-            , english = "weight"
+            { german = "Gewicht (kg)"
+            , english = "weight (kg)"
             , french = "translationMissing"
             }
 
         Height ->
-            { german = "Größe"
-            , english = "height"
+            { german = "Größe (cm)"
+            , english = "height (cm)"
             , french = "translationMissing"
             }
 
         Waist ->
-            { german = "Taille"
-            , english = "waist"
+            { german = "Taille (cm)"
+            , english = "waist (cm)"
             , french = "translationMissing"
             }
 
         Hip ->
-            { german = "Hüftumfang"
-            , english = "hip size"
+            { german = "Hüftumfang (cm)"
+            , english = "hip size (cm)"
             , french = "translationMissing"
             }
 
@@ -121,14 +121,14 @@ knownTranslations key =
             }
 
         GenderOptionMale ->
-            { german = "männlich"
-            , english = "male"
+            { german = "männlich ♂"
+            , english = "male ♂"
             , french = "translationMissing"
             }
 
         GenderOptionFemale ->
-            { german = "weiblich"
-            , english = "female"
+            { german = "weiblich ♀"
+            , english = "female ♀"
             , french = "translationMissing"
             }
 
@@ -146,7 +146,7 @@ knownTranslations key =
 
         InvalidResultContent ->
             { german = "Leider konnten wir kein Ergebnis berechnen. :("
-            , english = "To calculate your result we need complete and valid intpu"
+            , english = "To calculate your result we need complete and valid intput"
             , french = "translationMissing"
             }
 
@@ -205,56 +205,56 @@ knownTranslations key =
             }
 
         Chest ->
-            { german = "Brust"
-            , english = "chest"
+            { german = "Hautfalte Brust (mm)"
+            , english = "skinfold chest (mm)"
             , french = "translationMissing"
             }
 
         Subscapular ->
-            { german = "Schulterblatt"
-            , english = "shoulderblade"
+            { german = "Hautfalte Schulterblatt (mm)"
+            , english = "skinfold shoulderblade (mm)"
             , french = "translationMissing"
             }
 
         Armpit ->
-            { german = "Achsel"
-            , english = "armpit"
+            { german = "Hautfalte Achsel (mm)"
+            , english = "skinfold armpit (mm)"
             , french = "translationMissing"
             }
 
         Biceps ->
-            { german = "Bizeps"
-            , english = "biceps"
+            { german = "Hautfalte Bizeps (mm)"
+            , english = "skinfold biceps (mm)"
             , french = "translationMissing"
             }
 
         Triceps ->
-            { german = "Triceps"
-            , english = "triceps"
+            { german = "Hautfalte Triceps (mm)"
+            , english = "skinfold triceps (mm)"
             , french = "translationMissing"
             }
 
         Abdomen ->
-            { german = "Abdomen"
-            , english = "abdomen"
+            { german = "Hautfalte Abdomen (mm)"
+            , english = "skinfold abdomen (mm)"
             , french = "translationMissing"
             }
 
         IliacCrest ->
-            { german = "Hüfte (Iliac Crest)"
-            , english = "hip (iliac crest)"
+            { german = "Hautfalte Hüfte (mm)"
+            , english = "skinfold hip (mm)"
             , french = "translationMissing"
             }
 
         Thigh ->
-            { german = "Oberschenkel"
-            , english = "thigh"
+            { german = "Hautfalte Oberschenkel (mm)"
+            , english = "skinfold thigh (mm)"
             , french = "translationMissing"
             }
 
         Calf ->
-            { german = "Wade"
-            , english = "calf"
+            { german = "Hautfalte Wade (mm)"
+            , english = "skinfold calf (mm)"
             , french = "translationMissing"
             }
 

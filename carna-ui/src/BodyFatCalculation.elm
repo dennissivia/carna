@@ -2,18 +2,21 @@ module BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhc
 
 import Utils exposing (Gender(..), Age, UnsafeFloat, round2)
 import Result.Extra as ResultExtra
+import Maybe.Extra as MaybeExtra
 
 
+{-| used for calculation
+-}
 type alias Skinfolds =
-    { armpit : Result String Float
-    , subscapular : Result String Float -- shoulder blade
-    , chest : Result String Float
-    , triceps : Result String Float
-    , biceps : Result String Float
-    , abdomen : Result String Float
-    , iliacCrest : Result String Float -- Hip
-    , thigh : Result String Float
-    , calf : Result String Float
+    { armpit : Maybe Float
+    , subscapular : Maybe Float -- shoulder blade
+    , chest : Maybe Float
+    , triceps : Maybe Float
+    , biceps : Maybe Float
+    , abdomen : Maybe Float
+    , iliacCrest : Maybe Float -- Hip
+    , thigh : Maybe Float
+    , calf : Maybe Float
     }
 
 
@@ -35,48 +38,46 @@ Skinfolds: triceps, abdomen, hip
 #A = age in years
 
 -}
-caliper3foldsJp : Skinfolds -> Gender -> Result String Age -> Maybe Float
+caliper3foldsJp : Skinfolds -> Gender -> Maybe Age -> Maybe Float
 caliper3foldsJp skinFolds gender age =
     case gender of
         Female ->
-            Result.map3 (\x y z -> x + y + z) skinFolds.triceps skinFolds.abdomen skinFolds.iliacCrest
-                |> Result.map2
+            Maybe.map3 (\x y z -> x + y + z) skinFolds.triceps skinFolds.abdomen skinFolds.iliacCrest
+                |> Maybe.map2
                     (\age_ sum ->
                         (1.089733 - (0.000924 * sum) + (0.0000056 * (sum ^ 2)) - (0.00012828 * age_))
                     )
                     age
-                |> Result.map
+                |> Maybe.map
                     (\d -> 495 / d - 450)
-                |> Result.map round2
-                |> Result.toMaybe
+                |> Maybe.map round2
 
         _ ->
-            Result.map3 (\x y z -> x + y + z) skinFolds.chest skinFolds.abdomen skinFolds.thigh
-                |> Result.map2
+            Maybe.map3 (\x y z -> x + y + z) skinFolds.chest skinFolds.abdomen skinFolds.thigh
+                |> Maybe.map2
                     (\age_ sum ->
                         (1.10938 - (0.0008267 * sum) + (0.0000016 * (sum ^ 2)) - (0.0002574 * age_))
                     )
                     age
-                |> Result.map
+                |> Maybe.map
                     (\d -> 495 / d - 450)
-                |> Result.map round2
-                |> Result.toMaybe
+                |> Maybe.map round2
 
 
 {-| Caliper4foldsNhca
 S = armpit + shoulderblade + chest + abdomen
 (0.27784*S)-(0.00053 * S^2) + (0.12437*@data.age-3.28791)
+-- NOTE git: more narrow types by using maybe instead of result
 -}
-caliper4foldsNhca : Skinfolds -> Result String Age -> Maybe Float
+caliper4foldsNhca : Skinfolds -> Maybe Age -> Maybe Float
 caliper4foldsNhca skinFolds age =
-    Result.map4 (\a b c d -> a + b + c + d) skinFolds.armpit skinFolds.subscapular skinFolds.chest skinFolds.abdomen
-        |> Result.map2
+    Maybe.map4 (\a b c d -> a + b + c + d) skinFolds.armpit skinFolds.subscapular skinFolds.chest skinFolds.abdomen
+        |> Maybe.map2
             (\age_ sum ->
                 (0.27784 * sum) - (0.00053 * (sum ^ 2)) + (0.12437 * age_ - 3.28791)
             )
             age
-        |> Result.map round2
-        |> Result.toMaybe
+        |> Maybe.map round2
 
 
 {-| Caliper7foldsJp
@@ -104,11 +105,11 @@ S = Sum of skinfolds
 A = Age in years
 
 -}
-caliper7foldsJp : Skinfolds -> Gender -> Result String Age -> Maybe Float
+caliper7foldsJp : Skinfolds -> Gender -> Maybe Age -> Maybe Float
 caliper7foldsJp skinFolds gender age =
     let
         skinFolds_ =
-            ResultExtra.combine
+            MaybeExtra.combine
                 [ skinFolds.chest
                 , skinFolds.subscapular
                 , skinFolds.armpit
@@ -119,32 +120,30 @@ caliper7foldsJp skinFolds gender age =
                 ]
 
         sum =
-            Result.map List.sum skinFolds_
+            Maybe.map List.sum skinFolds_
     in
         case gender of
             Female ->
                 sum
-                    |> Result.map2
+                    |> Maybe.map2
                         (\age_ s ->
                             (1.097 - 0.00046971 * s + 0.00000056 * s ^ 2 - 0.00012828 * age_)
                         )
                         age
-                    |> Result.map
+                    |> Maybe.map
                         (\d -> 495 / d - 450)
-                    |> Result.map round2
-                    |> Result.toMaybe
+                    |> Maybe.map round2
 
             _ ->
                 sum
-                    |> Result.map2
+                    |> Maybe.map2
                         (\age_ s ->
                             (1.112 - 0.00043499 * s + 0.00000055 * s ^ 2 - 0.00028826 * age_)
                         )
                         age
-                    |> Result.map
+                    |> Maybe.map
                         (\d -> 495 / d - 450)
-                    |> Result.map round2
-                    |> Result.toMaybe
+                    |> Maybe.map round2
 
 
 {-| Caliper9foldsParillo:
@@ -157,11 +156,11 @@ caliper7foldsJp skinFolds gender age =
     end
 
 -}
-caliper9foldsParillo : Skinfolds -> Result String Float -> Maybe Float
+caliper9foldsParillo : Skinfolds -> Maybe Float -> Maybe Float
 caliper9foldsParillo skinFolds weight =
     let
         skinFolds_ =
-            ResultExtra.combine
+            MaybeExtra.combine
                 [ skinFolds.chest
                 , skinFolds.subscapular
                 , skinFolds.armpit
@@ -174,8 +173,7 @@ caliper9foldsParillo skinFolds weight =
                 ]
 
         sum =
-            Result.map List.sum skinFolds_
+            Maybe.map List.sum skinFolds_
     in
-        Result.map2 (\s weight_ -> 27 * s / (weight_ / 0.454)) sum weight
-            |> Result.map round2
-            |> Result.toMaybe
+        Maybe.map2 (\s weight_ -> 27 * s / (weight_ / 0.454)) sum weight
+            |> Maybe.map round2
