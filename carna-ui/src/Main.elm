@@ -497,31 +497,31 @@ updateSkinFolds : SkinfoldInput -> SkinfoldMsg -> SkinfoldInput
 updateSkinFolds skinFolds msg =
     case msg of
         SetChest value ->
-            { skinFolds | chest = Just <| validateFloat "chest" value }
+            { skinFolds | chest = Just <| validateFloat value }
 
         SetArmpit value ->
-            { skinFolds | armpit = Just <| validateFloat "armpit" value }
+            { skinFolds | armpit = Just <| validateFloat value }
 
         SetSubscapular value ->
-            { skinFolds | subscapular = Just <| validateFloat "subscapular" value }
+            { skinFolds | subscapular = Just <| validateFloat value }
 
         SetTriceps value ->
-            { skinFolds | triceps = Just <| validateFloat "triceps" value }
+            { skinFolds | triceps = Just <| validateFloat value }
 
         SetBiceps value ->
-            { skinFolds | biceps = Just <| validateFloat "biceps" value }
+            { skinFolds | biceps = Just <| validateFloat value }
 
         SetAbdomen value ->
-            { skinFolds | abdomen = Just <| validateFloat "abdomen" value }
+            { skinFolds | abdomen = Just <| validateFloat value }
 
         SetIliacCrest value ->
-            { skinFolds | iliacCrest = Just <| validateFloat "iliac" value }
+            { skinFolds | iliacCrest = Just <| validateFloat value }
 
         SetThigh value ->
-            { skinFolds | thigh = Just <| validateFloat "thigh" value }
+            { skinFolds | thigh = Just <| validateFloat value }
 
         SetCalf value ->
-            { skinFolds | calf = Just <| validateFloat "calf" value }
+            { skinFolds | calf = Just <| validateFloat value }
 
 
 optionalToMaybe : OptionalValidatedInput a -> Maybe a
@@ -554,13 +554,16 @@ calculateBodyFatIndexResult bfi =
 
         weight =
             optionalToMaybe bfi.weight
+
+        gender =
+            Maybe.withDefault GenderOther bfi.gender
     in
         case bfi.isValid of
             True ->
                 Just
-                    { bodyFat3folds = caliper3foldsJp skinfolds (Maybe.withDefault GenderOther bfi.gender) age
+                    { bodyFat3folds = caliper3foldsJp skinfolds gender age
                     , bodyFat4folds = caliper4foldsNhca skinfolds age
-                    , bodyFat7folds = caliper7foldsJp skinfolds (Maybe.withDefault GenderOther bfi.gender) age
+                    , bodyFat7folds = caliper7foldsJp skinfolds gender age
                     , bodyFat9folds = caliper9foldsParillo skinfolds weight
                     }
 
@@ -659,47 +662,47 @@ validateBodyFatIndex bodyFatIndex =
         |> Maybe.withDefault False
 
 
+{-| We could prepend error information this way
+Result.mapError ((++) "Age") << validateChainFloat
+-}
 validateAge : String -> Result String Age
 validateAge =
-    validateChainFloat "Age"
+    validateChainFloat
 
 
 validateHeight : String -> Result String Float
 validateHeight =
-    validateChainFloat "Height"
+    validateChainFloat
 
 
 validateWeight : String -> Result String Float
 validateWeight =
-    validateChainFloat "Weight"
+    validateChainFloat
 
 
 validateWaist : String -> Result String Float
 validateWaist =
-    validateChainFloat "Waist"
+    validateChainFloat
 
 
 validateHip : String -> Result String Float
 validateHip =
-    validateChainFloat "Hip"
+    validateChainFloat
 
 
-validateChainFloat : String -> String -> Result String Float
-validateChainFloat label val =
+validateChainFloat : String -> Result String Float
+validateChainFloat val =
     Ok val
-        |> Result.andThen (validatePresence label)
-        |> Result.andThen (validateFloat label)
+        |> Result.andThen validatePresence
+        |> Result.andThen validateFloat
 
 
-validateChainInt : String -> String -> Result String Int
-validateChainInt label val =
-    Ok val
-        |> Result.andThen (validatePresence label)
-        |> Result.andThen (validateInt label)
-
-
-validateFloat : String -> String -> Result String Float
-validateFloat label str =
+{-| FIXME we can only return I18n.Key as Err if we
+either convert parseFloat errors to Keys or if we
+pass the locale directly into all functions...
+-}
+validateFloat : String -> Result String Float
+validateFloat str =
     case Regex.contains (Regex.regex "^[+-]?[0-9]+([.][0-9]+)?$") str of
         True ->
             String.toFloat str
@@ -708,18 +711,8 @@ validateFloat label str =
             Err <| "is not a valid number"
 
 
-validateInt : String -> String -> Result String Int
-validateInt label str =
-    case Regex.contains (Regex.regex "^[+-]?[0-9]+$") str of
-        True ->
-            String.toInt str
-
-        False ->
-            Err <| "is not a valid number"
-
-
-validatePresence : String -> String -> Result String String
-validatePresence label str =
+validatePresence : String -> Result String String
+validatePresence str =
     if not (StringExtra.isBlank str) then
         Ok str
     else

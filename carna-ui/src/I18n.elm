@@ -24,6 +24,7 @@ type Key
     | Calf
     | CalculateBodyIndex
     | ValidationIsNotANumber
+    | ValidationShouldNotBeEmpty
     | BodyIndexSurfaceArea
     | BodyIndexWaistHipRatio
     | BodyIndexResultColumnIndexName
