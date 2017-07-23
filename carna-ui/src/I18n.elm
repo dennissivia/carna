@@ -271,19 +271,19 @@ knownTranslations key =
             }
 
         ContentSubheadBMI ->
-            { german = "BMI - Berechnen und deuten"
-            , english = "BMI - Calculate and understand"
+            { german = "Berechnen und klassifizieren lassen"
+            , english = "Calculation and idividual classification"
             , french = "translationMissing"
             }
 
         ContentBodyBMI ->
-            { german = """Der Body-Mass-Index (BMI) – ist eine Maßzahl für die Bewertung des Körpergewichts eines Menschen in Relation zu seiner Körpergröße.
+            { german = """Der BMI ist eine Maßzahl für die Bewertung des Körpergewichts eines Menschen.
                           Er soll helfen Untergewicht, Idealgewicht und Uebergewicht zu erkennen.
-                          Der BMI ist allerdings lediglich ein grober Richtwert, da er u.A. nicht die individuelle Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe
-                          eines Menschen berücksichtigt. Dennoch wird er u.A. von Krankenkassen verwendet."""
-            , english = """The body mass index (BMI) is a value derived from the mass (weight) and height of an individual.
-                           The BMI is an attempt to quantify the amount of tissue mass (muscle, fat, and bone) in an individual, and then categorize
-                           that person as underweight, normal weight, overweight, or obese based on that value.
+                          Der BMI ist allerdings eher ein grober Richtwert, der u.A. nicht die individuelle
+                          Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe berücksichtigt."""
+            , english = """The BMI is a value derived from the mass (weight) and height of an individual.
+                           Its purpose is to quantify the amount of tissue mass (muscle, fat, and bone) in an
+                         individual, and then categorize that person as underweight, normal weight, overweight, or obese based on that value.
                            However, there is some debate about where on the BMI scale the dividing lines between categories should be placed."""
             , french = "translationMissing"
             }
