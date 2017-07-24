@@ -122,14 +122,14 @@ knownTranslations key =
             }
 
         GenderOptionMale ->
-            { german = "männlich ♂"
-            , english = "male ♂"
+            { german = "männlich"
+            , english = "male"
             , french = "translationMissing"
             }
 
         GenderOptionFemale ->
-            { german = "weiblich ♀"
-            , english = "female ♀"
+            { german = "weiblich"
+            , english = "female"
             , french = "translationMissing"
             }
 

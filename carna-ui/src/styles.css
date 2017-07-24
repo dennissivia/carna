@@ -99,22 +99,23 @@
 }
 
 .invalid-result{
-    /* indigo 100 */
-    color: #C5CAE9;
-
-
+    color: #fff;
 }
-/* hack strange spacing away (incorrect calc) */
+
+/* hack strange spacing away (calc creates space on desktop sized screens) */
 .mdl-layout__tab-bar{
-    /* width:100%!important; */
+    width: calc(100% - 56px)!important;
 }
+
 .content-card-body-wrap{
     color: black!important;
 }
+
 .content-card-body-wrap div p{
     font-size: 0.85em;
     line-height: 20px;
 }
+
 .content-card{
     width:90%!important;
 }

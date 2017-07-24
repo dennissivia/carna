@@ -225,7 +225,7 @@ initialModel flags location =
             parseLocation location
     in
         { count = 0
-        , mdl = Layout.setTabsWidth 460 mdl
+        , mdl = Layout.setTabsWidth 1160 mdl
         , route = initialRoute
         , selectedTab = routeToTabId initialRoute
         , locale = toLocale flags.userLanguage
@@ -331,7 +331,7 @@ primaryColor =
 
 accentColor : MColor.Hue
 accentColor =
-    MColor.Indigo
+    MColor.DeepOrange
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -525,8 +525,8 @@ updateSkinFolds skinFolds msg =
 
 
 optionalToMaybe : OptionalValidatedInput a -> Maybe a
-optionalToMaybe optional =
-    MaybeExtra.join <| Maybe.map Result.toMaybe optional
+optionalToMaybe =
+    MaybeExtra.join << Maybe.map Result.toMaybe
 
 
 toSkinfoldValues : SkinfoldInput -> Skinfolds
@@ -594,17 +594,13 @@ calculateBodyIndexResult bodyIndexInput =
 
 toBodyIndexValues : BodyIndexInput -> BodyIndexValues
 toBodyIndexValues input =
-    let
-        toMaybe =
-            MaybeExtra.join << Maybe.map Result.toMaybe
-    in
-        { age = toMaybe input.age
-        , height = toMaybe input.height
-        , weight = toMaybe input.weight
-        , waist = toMaybe input.waist
-        , hipSize = toMaybe input.hipSize
-        , gender = input.gender
-        }
+    { age = optionalToMaybe input.age
+    , height = optionalToMaybe input.height
+    , weight = optionalToMaybe input.weight
+    , waist = optionalToMaybe input.waist
+    , hipSize = optionalToMaybe input.hipSize
+    , gender = input.gender
+    }
 
 
 {-| TODO: split classificatin and satisfaction conversion into two functions that are piped together
@@ -644,12 +640,12 @@ classificationToSatisfaction class =
 
 validateBodyIndex : BodyIndexInput -> Bool
 validateBodyIndex bodyIndex =
-    Maybe.map5 (\a b c d e -> List.all isOk [ a, b, c, d, e ])
+    Maybe.map3 (\a b c -> List.all isOk [ a, b, c ])
         bodyIndex.age
         bodyIndex.height
         bodyIndex.weight
-        bodyIndex.waist
-        bodyIndex.hipSize
+        -- bodyIndex.waist
+        -- bodyIndex.hipSize
         |> Maybe.withDefault False
 
 
@@ -724,9 +720,12 @@ view model =
     Material.Scheme.topWithScheme primaryColor accentColor <|
         Layout.render Mdl
             model.mdl
-            [ Layout.fixedHeader
-            , Layout.selectedTab model.selectedTab
+            [ Layout.selectedTab model.selectedTab
             , Layout.onSelectTab SelectTab
+            , Layout.fixedHeader
+
+            -- , Layout.fixedTabs
+            -- , Layout.fixedDrawer
             ]
             { header =
                 [ Layout.row
