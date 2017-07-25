@@ -285,10 +285,10 @@ knownTranslations key =
                           Er soll helfen Untergewicht, Idealgewicht und Uebergewicht zu erkennen.
                           Der BMI ist allerdings eher ein grober Richtwert, der u.A. nicht die individuelle
                           Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe berücksichtigt."""
-            , english = """The BMI is a value derived from the mass (weight) and height of an individual.
-                           Its purpose is to quantify the amount of tissue mass (muscle, fat, and bone) in an
-                         individual, and then categorize that person as underweight, normal weight, overweight, or obese based on that value.
-                           However, there is some debate about where on the BMI scale the dividing lines between categories should be placed."""
+            , english = """The BMI is derived from the weight and height of an individual.
+                         Based on that, you can estimate if the person is underweight, has normal weight,
+                         is overweight, or obese. However, the BMI does not consider individual factors and should
+                         be considered a rough estimate."""
             , french = "translationMissing"
             }
 
@@ -305,14 +305,17 @@ knownTranslations key =
             }
 
         ContentBodyCarna ->
-            { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich den Körperfettanteil mittels [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie),
-        den [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (nach WHO),  den [BAI](https://en.wikipedia.org/wiki/Body_adiposity_index) (Body Adiposity Index),
-        das Idealgewicht nach Broca index, den Ponderal-Index,
-        das Taille-Hüft-Verhältnis und die Körperoberfläche zu berechnen."""
-            , english = """With our body index calculator, you can measure your body-fat percentage, the BMI (according to WHO),
-        the BAI (Body Adiposity Index),
-        your ideal weight (Broca index), your Ponderal-Index,
-        your waist-hip-ratio and your body surface area (according to DuBois)."""
+            { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich den Körperfettanteil mittels
+                        [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie),
+                        den [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (nach WHO),
+                        den [BAI](https://en.wikipedia.org/wiki/Body_adiposity_index) (Body Adiposity Index),
+                        das Idealgewicht nach Broca index, den Ponderal-Index,
+                        das Taille-Hüft-Verhältnis und die Körperoberfläche zu berechnen."""
+            , english = """With our [body index calculator](/#body-index), you can calculate your body-fat percentage,
+                         the [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (according to WHO),
+                         the BAI (Body Adiposity Index),
+                         your ideal weight (Broca index), your Ponderal-Index, waist-hip-ratio
+                         and your body surface area."""
             , french = "translationMissing"
             }
 
@@ -332,7 +335,7 @@ knownTranslations key =
             { german = """Die [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie) (Kalipermetrie) ist eine Methode zur
                         näherungsweisen Bestimmung des Körperfettanteils mittels Messung der Dicke bestimmter Hautfalten.
                         Verschiedene Methoden unterscheiden sich vor allem darin welche Hautfalten gemessen werden."""
-            , english = """With skinfold calipers it is possible to calculate the body fat percentage by measuring
+            , english = """With skinfold calipers it is possible to estimate the body fat percentage by measuring
                          the thickness of skinfolds. There are different methods which combine different sets of
                          skinfolds and calculation factors for those."""
             , french = "translationMissing"

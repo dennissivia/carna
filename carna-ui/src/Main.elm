@@ -841,7 +841,8 @@ viewContentCard cardData =
             , Card.subhead [] [ text (Maybe.withDefault "" cardData.subhead) ]
             ]
         , Card.text [ cs "content-card-body-wrap" ] [ (Markdown.toHtml [] cardData.content) ]
-        , Card.actions [ Card.border, MColor.text MColor.white ] []
+
+        -- , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
 
 
