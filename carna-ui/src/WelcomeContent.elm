@@ -12,71 +12,31 @@ type alias CardContent =
 
 bmiInfo : Locale -> CardContent
 bmiInfo locale =
-    let
-        t_ =
-            I18n.t locale
-
-        head =
-            t_ ContentHeadBMI
-
-        subhead =
-            Just <| t_ ContentSubheadBMI
-
-        body =
-            t_ ContentBodyBMI
-    in
-        CardContent head subhead body
+    { head = I18n.t locale ContentHeadBMI
+    , subhead = Just <| I18n.t locale ContentSubheadBMI
+    , content = I18n.t locale ContentBodyBMI
+    }
 
 
 carnaInfo : Locale -> CardContent
 carnaInfo locale =
-    let
-        t_ =
-            I18n.t locale
-
-        head =
-            t_ ContentHeadCarna
-
-        subhead =
-            Just (t_ ContentSubHeadCarna)
-
-        body =
-            t_ ContentBodyCarna
-    in
-        CardContent head subhead body
+    { head = I18n.t locale ContentHeadCarna
+    , subhead = Just (I18n.t locale ContentSubHeadCarna)
+    , content = I18n.t locale ContentBodyCarna
+    }
 
 
 calipometrie : Locale -> CardContent
 calipometrie locale =
-    let
-        t_ =
-            I18n.t locale
-
-        head =
-            t_ ContentHeadCalipometrie
-
-        subhead =
-            Just <| t_ ContentSubHeadCalipometrie
-
-        body =
-            t_ ContentBodyCalipometrie
-    in
-        CardContent head subhead body
+    { head = I18n.t locale ContentHeadCalipometrie
+    , subhead = Just <| I18n.t locale ContentSubHeadCalipometrie
+    , content = I18n.t locale ContentBodyCalipometrie
+    }
 
 
 caliperMethods : Locale -> CardContent
 caliperMethods locale =
-    let
-        t_ =
-            I18n.t locale
-
-        head =
-            t_ ContentHeadCaliperMethods
-
-        subhead =
-            Just <| t_ ContentSubHeadCaliperMethods
-
-        body =
-            t_ ContentBodyCaliperMethods
-    in
-        CardContent head subhead body
+    { head = I18n.t locale ContentHeadCaliperMethods
+    , subhead = Just <| I18n.t locale ContentSubHeadCaliperMethods
+    , content = I18n.t locale ContentBodyCaliperMethods
+    }
