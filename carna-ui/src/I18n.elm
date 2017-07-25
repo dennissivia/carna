@@ -48,6 +48,9 @@ type Key
     | ContentHeadCaliperMethods
     | ContentSubHeadCaliperMethods
     | ContentBodyCaliperMethods
+    | ContentHeadPreferOldPage
+    | ContentSubHeadPreferOldPage
+    | ContentBodyPreferOldPage
 
 
 type alias TranslationRecord =
@@ -362,6 +365,29 @@ knownTranslations key =
 * 4 skinfold method [NHCA](http://www.nachc.org/)
 * 7 skinfold method Jackson & Pollock
 * 9 skinfold method Parillo"""
+            , french = "translationMissing"
+            }
+
+        ContentHeadPreferOldPage ->
+            { german = "Nicht zufrieden mit dieser Seite"
+            , english = "Dont like the new page?"
+            , french = "translationMissing"
+            }
+
+        ContentSubHeadPreferOldPage ->
+            { german = "Das ist sehr schade"
+            , english = "We are sorry to hear that "
+            , french = "translationMissing"
+            }
+
+        ContentBodyPreferOldPage ->
+            { german = """Aus diesem Grund haben wir die alten Seite unter [old.carna.io](http://old.carna.io)
+                          noch immer online. Ausserdem wuerden wir gern wissen, was wir besser machen oder anpassen sollen.
+                          Ein kurzes feedback an suggestions@carna.io wuerde uns sehr helfen"""
+            , english = """Just in case this would happen we decided to keep the old page around for now.
+                           Visit [old.carna.io](http://old.carna.io) to get to the original experience.
+                           It would be great if you could let us know how we can improve our app, by sending your ideas
+                           to suggestions@carna.io."""
             , french = "translationMissing"
             }
 

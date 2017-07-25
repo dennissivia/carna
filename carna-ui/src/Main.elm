@@ -795,24 +795,28 @@ gridCell styling =
 viewWelcomePage : Model -> Html Msg
 viewWelcomePage model =
     let
-        cardInfo =
+        card1 =
             carnaInfo model.locale
 
-        cardInfo2 =
+        card2 =
             bmiInfo model.locale
 
-        cardInfo3 =
+        card3 =
             calipometrie model.locale
 
-        cardInfo4 =
+        card4 =
             caliperMethods model.locale
+
+        card5 =
+            preferOldPage model.locale
     in
         div []
             [ viewContentRow
-                [ viewContentCard cardInfo
-                , viewContentCard cardInfo2
-                , viewContentCard cardInfo3
-                , viewContentCard cardInfo4
+                [ viewContentCard card1
+                , viewContentCard card2
+                , viewContentCard card3
+                , viewContentCard card4
+                , viewContentCard card5
                 ]
             ]
 

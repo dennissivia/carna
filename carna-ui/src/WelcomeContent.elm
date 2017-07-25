@@ -40,3 +40,11 @@ caliperMethods locale =
     , subhead = Just <| I18n.t locale ContentSubHeadCaliperMethods
     , content = I18n.t locale ContentBodyCaliperMethods
     }
+
+
+preferOldPage : Locale -> CardContent
+preferOldPage locale =
+    { head = I18n.t locale ContentHeadPreferOldPage
+    , subhead = Just <| I18n.t locale ContentSubHeadPreferOldPage
+    , content = I18n.t locale ContentBodyPreferOldPage
+    }
