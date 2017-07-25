@@ -83,7 +83,8 @@
 }
 
 .invalid-result{
-    color: #fff;
+    color: #ccc;
+    font-weight: 200;
 }
 
 /* hack strange spacing away (calc creates space on desktop sized screens) */

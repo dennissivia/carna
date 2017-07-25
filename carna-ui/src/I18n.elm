@@ -152,8 +152,8 @@ knownTranslations key =
             }
 
         InvalidResultContent ->
-            { german = "Leider konnten wir kein Ergebnis berechnen. :("
-            , english = "To calculate your result we need complete and valid intput"
+            { german = "Leider konnten wir kein Ergebnis berechnen. Moeglicherweise ist die Eingabe nicht vollstaendig oder fehlerhaft."
+            , english = "Sorry, we were not able to calculate your results. Maybe some inputs are missing or incorrect?"
             , french = "translationMissing"
             }
 

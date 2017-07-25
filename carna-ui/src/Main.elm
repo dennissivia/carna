@@ -924,7 +924,7 @@ viewBodyFatIndexResultCard bodyFatIndex locale =
             if bodyFatIndex.isValid then
                 viewBodyFatIndexResultTable bodyFatIndex locale
             else
-                div [] [ text (I18n.t locale I18n.InvalidResultContent) ]
+                div [ class "invalid-result" ] [ text (I18n.t locale I18n.InvalidResultContent) ]
     in
         viewResultCard content locale
 
