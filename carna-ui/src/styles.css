@@ -5,10 +5,6 @@
         display: none!important;
     }
 
-    /* body{ */
-    /*     color: red; */
-    /* } */
-
     .result-card{
         height: 100%;
         width: 280px!important;
@@ -27,13 +23,7 @@
         display: none!important;
     }
 
-    /* body{ */
-    /*     color: pink; */
-    /* } */
-
-        .result-card{
-            /* ensure we respect the grid cell size */
-        /* width: inherit!important; */
+    .result-card{
         height: 100%;
         width: 320px;
     }
@@ -50,9 +40,6 @@
     .header{
         display: block;
     }
-    /* body{ */
-    /*     color: green; */
-    /* } */
 
     .grid-wrap{
         /* looks nicer on larger screens */
@@ -67,9 +54,6 @@
     .body-index-result-table td{
         text-align: center!important;
         padding-left: 12px!important;
-        /* padding-left: 0!important; */
-        /* background-color: pink; */
-        /* padding-left: 20px; */
     }
 }
 
@@ -111,8 +95,8 @@
     color: black!important;
 }
 
-.content-card-body-wrap div p{
-    font-size: 0.85em;
+.content-card-body-wrap div *{
+    font-size: 0.9em;
     line-height: 20px;
 }
 

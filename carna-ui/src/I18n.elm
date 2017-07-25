@@ -45,6 +45,9 @@ type Key
     | ContentHeadCalipometrie
     | ContentSubHeadCalipometrie
     | ContentBodyCalipometrie
+    | ContentHeadCaliperMethods
+    | ContentSubHeadCaliperMethods
+    | ContentBodyCaliperMethods
 
 
 type alias TranslationRecord =
@@ -302,10 +305,10 @@ knownTranslations key =
             }
 
         ContentBodyCarna ->
-            { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich den Körperfettanteil mittels [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie"),
-        den BMI (nach WHO),  den BAI (Body Adiposity Index),
+            { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich den Körperfettanteil mittels [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie),
+        den [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (nach WHO),  den [BAI](https://en.wikipedia.org/wiki/Body_adiposity_index) (Body Adiposity Index),
         das Idealgewicht nach Broca index, den Ponderal-Index,
-        das Taille-Hüft-Verhältnis und die Körperoberfläche (nach DuBois) zu berechnen."""
+        das Taille-Hüft-Verhältnis und die Körperoberfläche zu berechnen."""
             , english = """With our body index calculator, you can measure your body-fat percentage, the BMI (according to WHO),
         the BAI (Body Adiposity Index),
         your ideal weight (Broca index), your Ponderal-Index,
@@ -326,13 +329,36 @@ knownTranslations key =
             }
 
         ContentBodyCalipometrie ->
-            { german = """Die Calipometrie (auch Kalipermetrie) ist eine Methode zur näherungsweisen Bestimmung des
-                        Körperfettanteils mittels Messung der Dicke bestimmter Hautfalten.
-                        Verschiedene Methoden unterscheiden sich vor allem darin welche Hautfalten
-                        gemessen werden."""
+            { german = """Die [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie) (Kalipermetrie) ist eine Methode zur
+                        näherungsweisen Bestimmung des Körperfettanteils mittels Messung der Dicke bestimmter Hautfalten.
+                        Verschiedene Methoden unterscheiden sich vor allem darin welche Hautfalten gemessen werden."""
             , english = """With skinfold calipers it is possible to calculate the body fat percentage by measuring
                          the thickness of skinfolds. There are different methods which combine different sets of
                          skinfolds and calculation factors for those."""
+            , french = "translationMissing"
+            }
+
+        ContentHeadCaliperMethods ->
+            { german = "Caliper Berechnungsmethoden"
+            , english = "Caliper calculation methods"
+            , french = "translationMissing"
+            }
+
+        ContentSubHeadCaliperMethods ->
+            { german = "Die folgenden Methoden stellen wir bereit"
+            , english = "We provide the following methods"
+            , french = "translationMissing"
+            }
+
+        ContentBodyCaliperMethods ->
+            { german = """* 3 Falten Methode nach Jackson/Pollack
+* 4 Falten Methode nach dem [NHCA](http://www.nachc.org/)
+* 7 Falten Methode nach Jackson & Pollock
+* 9 Falten Methode nach Parillo"""
+            , english = """* 3 skinfold method Jackson/Pollack
+* 4 skinfold method [NHCA](http://www.nachc.org/)
+* 7 skinfold method Jackson & Pollock
+* 9 skinfold method Parillo"""
             , french = "translationMissing"
             }
 

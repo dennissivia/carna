@@ -803,12 +803,16 @@ viewWelcomePage model =
 
         cardInfo3 =
             calipometrie model.locale
+
+        cardInfo4 =
+            caliperMethods model.locale
     in
         div []
             [ viewContentRow
                 [ viewContentCard cardInfo
                 , viewContentCard cardInfo2
                 , viewContentCard cardInfo3
+                , viewContentCard cardInfo4
                 ]
             ]
 

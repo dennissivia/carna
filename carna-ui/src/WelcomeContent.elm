@@ -62,3 +62,21 @@ calipometrie locale =
             t_ ContentBodyCalipometrie
     in
         CardContent head subhead body
+
+
+caliperMethods : Locale -> CardContent
+caliperMethods locale =
+    let
+        t_ =
+            I18n.t locale
+
+        head =
+            t_ ContentHeadCaliperMethods
+
+        subhead =
+            Just <| t_ ContentSubHeadCaliperMethods
+
+        body =
+            t_ ContentBodyCaliperMethods
+    in
+        CardContent head subhead body
