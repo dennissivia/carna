@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import String
 import Regex
@@ -40,6 +40,9 @@ import Dom.Scroll
 import Task
 import WelcomeContent exposing (..)
 import Markdown
+import Http
+import Json.Encode as Json
+import Json.Encode.Extra as JsonExtra
 
 
 type alias Flags =
@@ -159,6 +162,8 @@ type Msg
     | UrlChange Location
     | NavigateTo Route
     | NoOp
+    | BodyIndexStored (Result Http.Error String)
+    | BodyFatStored (Result Http.Error String)
 
 
 type BodyIndexMsg
@@ -268,8 +273,8 @@ toUrl tabId =
             "#welcome"
 
 
-routeToString : Route -> String
-routeToString route =
+routeToPath : Route -> String
+routeToPath route =
     case route of
         WelcomePage ->
             "#welcome"
@@ -350,8 +355,16 @@ update msg model =
 
                 scrollCmd =
                     Task.attempt (always NoOp) (Dom.Scroll.toBottom "elm-mdl-layout-main")
+
+                storeSubmissionCmd =
+                    Http.send BodyIndexStored (storeBodyIndexRequest <| toBodyIndexValues model.bodyIndex)
             in
-                { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex } ! [ scrollCmd ]
+                -- add http request here
+                { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex }
+                    ! [ scrollCmd
+                      , storeSubmissionCmd
+                      , trackBodyIndexSubmit ()
+                      ]
 
         NoOp ->
             model ! []
@@ -369,8 +382,15 @@ update msg model =
 
                 scrollCmd =
                     Task.attempt (always NoOp) (Dom.Scroll.toBottom "elm-mdl-layout-main")
+
+                storeSubmissionCmd =
+                    Http.send BodyFatStored (storeBodyFatRequest <| model.bodyFatIndex)
             in
-                { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex } ! [ scrollCmd ]
+                { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex }
+                    ! [ scrollCmd
+                      , storeSubmissionCmd
+                      , trackBodyFatSubmit ()
+                      ]
 
         BodyIndexChange bodyIndexMessage ->
             let
@@ -410,8 +430,11 @@ update msg model =
             let
                 newModel =
                     updateCurrentRoute model newLocation
+
+                newPath =
+                    routeToPath newModel.route
             in
-                newModel ! []
+                Debug.log "urlchange" <| newModel ! [ trackHashPage newPath ]
 
         --  handle link clicks within the app
         -- FIXME what do we have to do here?
@@ -427,6 +450,96 @@ update msg model =
                     Debug.log "change url cmd" <| changeUrl newModel
             in
                 Debug.log "NavigateTo recieved " newModel ! [ newUrlCmd ]
+
+        BodyIndexStored httpResponse ->
+            model ! []
+
+        BodyFatStored httpResponse ->
+            model ! []
+
+
+storeBodyIndexRequest : BodyIndexValues -> Http.Request String
+storeBodyIndexRequest record =
+    let
+        encoded =
+            Json.object
+                [ ( "body_index_calculation"
+                  , Json.object
+                        [ ( "age", JsonExtra.maybe Json.float record.age )
+                        , ( "height", JsonExtra.maybe Json.float record.height )
+                        , ( "weight", JsonExtra.maybe Json.float record.weight )
+                        , ( "waist_circumference", JsonExtra.maybe Json.float record.waist )
+                        , ( "hip_size", JsonExtra.maybe Json.float record.hipSize )
+                        , ( "gender"
+                          , Json.string
+                                (if hasGender record.gender Female then
+                                    "female"
+                                 else
+                                    "male"
+                                )
+                          )
+                        ]
+                  )
+                ]
+    in
+        Http.request
+            { method = "POST"
+            , url = "http://old.carna.io/body_index_calculations/"
+            , headers = []
+            , body = Http.jsonBody encoded
+            , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
+            , timeout = Nothing
+            , withCredentials = False
+            }
+
+
+{-| NOTE We could implement an ad hoc exp. backoff / retry api
+instead of fire and forget requests without response checks
+-}
+storeBodyFatRequest : BodyFatIndex -> Http.Request String
+storeBodyFatRequest record =
+    let
+        skinfolds =
+            toSkinfoldValues record.skinFolds
+
+        encoded =
+            Json.object
+                [ ( "body_fat_calculation"
+                  , Json.object
+                        [ ( "algorithm", Json.int 0 )
+                        , ( "age", JsonExtra.maybe Json.float <| optionalToMaybe record.age )
+                        , ( "height", JsonExtra.maybe Json.float <| optionalToMaybe record.height )
+                        , ( "weight", JsonExtra.maybe Json.float <| optionalToMaybe record.weight )
+                        , ( "female"
+                          , Json.string
+                                (if hasGender record.gender Female then
+                                    "true"
+                                 else
+                                    "false"
+                                )
+                          )
+                        , ( "skinfold_armpit", JsonExtra.maybe Json.float <| skinfolds.armpit )
+                        , ( "skinfold_shoulderblade", JsonExtra.maybe Json.float <| skinfolds.subscapular )
+                        , ( "skinfold_chest", JsonExtra.maybe Json.float <| skinfolds.chest )
+                        , ( "skinfold_triceps", JsonExtra.maybe Json.float <| skinfolds.triceps )
+                        , ( "skinfold_biceps", JsonExtra.maybe Json.float <| skinfolds.biceps )
+                        , ( "skinfold_abdomen", JsonExtra.maybe Json.float <| skinfolds.abdomen )
+                        , ( "skinfold_hip", JsonExtra.maybe Json.float <| skinfolds.iliacCrest )
+                        , ( "skinfold_thigh", JsonExtra.maybe Json.float <| skinfolds.thigh )
+                        , ( "skinfold_calf", JsonExtra.maybe Json.float <| skinfolds.calf )
+                        ]
+                  )
+                ]
+    in
+        Http.request
+            { method = "POST"
+            , url = "http://old.carna.io/body_fat_calculations/"
+            , headers = []
+            , body = Http.jsonBody encoded
+            , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
+            , timeout = Nothing
+            , withCredentials = False
+            }
 
 
 {-| reduce model with new location.
@@ -638,14 +751,17 @@ classificationToSatisfaction class =
                     Dissatisfied
 
 
+{-| validate body index input.
+We only require the minimal set of fields to
+do at least one computation. Thus waist and hip
+are optional.
+-}
 validateBodyIndex : BodyIndexInput -> Bool
 validateBodyIndex bodyIndex =
     Maybe.map3 (\a b c -> List.all isOk [ a, b, c ])
         bodyIndex.age
         bodyIndex.height
         bodyIndex.weight
-        -- bodyIndex.waist
-        -- bodyIndex.hipSize
         |> Maybe.withDefault False
 
 
@@ -1244,7 +1360,7 @@ parseLocation location =
 -- internalLink route =
 --     let
 --         urlString =
---             routeToString route
+--             routeToPath route
 --     in
 --         Html.a [ href urlString, onLinkClick (NavigateTo route) ] [ text urlString ]
 
@@ -1335,6 +1451,15 @@ hasGender maybeGender otherGender =
 
         Just gender ->
             gender == otherGender
+
+
+port trackHashPage : String -> Cmd msg
+
+
+port trackBodyIndexSubmit : () -> Cmd msg
+
+
+port trackBodyFatSubmit : () -> Cmd msg
 
 
 main : Program Flags Model Msg
