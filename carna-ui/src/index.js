@@ -9,6 +9,13 @@ require('./styles.css');
 
 var Elm = require('./Main.elm');
 var lang = navigator.language || navigator.userLanguage || 'en-EN';
+
+if(lang.indexOf("de") !== -1){
+    document.documentElement.lang = "de";
+}else{
+    document.documentElement.lang = "en";
+}
+
 var app = Elm.Main.fullscreen({userLanguage: lang});
 
 app.ports.trackHashPage.subscribe(function(path) {
