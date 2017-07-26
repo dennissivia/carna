@@ -2,17 +2,27 @@ port module Main exposing (..)
 
 import String
 import Regex
+import Http
+import Task
 import String.Extra as StringExtra
 import Result.Extra exposing (isOk)
 import Maybe.Extra as MaybeExtra
+import Color
+import Markdown
+import Dom.Scroll
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
+import Html.Attributes exposing (href, class, style, width)
+import Html.Events exposing (onWithOptions)
+import Svg exposing (Svg)
+import Json.Decode as Decode
+import Json.Encode as Json
+import Json.Encode.Extra as JsonExtra
 import Material
 import Material.Table as Table
 import Material.Elevation as Elevation
 import Material.Card as Card
 import Material.Dialog as Dialog
 import Material.Color as MColor
-import Color
 import Material.Toggles as Toggles
 import Material.Options exposing (Style, css, cs, id, nop)
 import Material.Grid as Grid exposing (Device(..))
@@ -22,27 +32,17 @@ import Material.Scheme
 import Material.Options as Options
 import Material.Button as Button
 import Material.Options exposing (css)
-import Svg exposing (Svg)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 import Material.Icons.Alert exposing (error_outline)
-import BodyIndexCalculation exposing (..)
-import BodyIndexClassification exposing (classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
-import Utils exposing (Gender(..), Classification(..), Age)
-import BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhca, caliper7foldsJp, caliper9foldsParillo)
-import BodyFatClassification exposing (..)
 import Navigation exposing (Location)
 import UrlParser exposing (Parser, QueryParser, top, (<?>), string, stringParam)
-import Html.Attributes exposing (href, class, style, width)
-import Html.Events exposing (onWithOptions)
-import Json.Decode as Decode
-import I18n exposing (Locale(..))
-import Dom.Scroll
-import Task
+import BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhca, caliper7foldsJp, caliper9foldsParillo)
+import BodyFatClassification exposing (..)
+import BodyIndexCalculation exposing (..)
+import BodyIndexClassification exposing (classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
 import WelcomeContent exposing (..)
-import Markdown
-import Http
-import Json.Encode as Json
-import Json.Encode.Extra as JsonExtra
+import I18n exposing (Locale(..))
+import Utils exposing (Gender(..), Classification(..), Age)
 
 
 type alias Flags =
