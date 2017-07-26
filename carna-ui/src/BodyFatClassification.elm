@@ -14,22 +14,16 @@ type alias Threshold =
 
 
 classifyBodyFat : Gender -> Maybe Age -> Maybe Float -> Maybe Classification
-classifyBodyFat gender age value =
-    case age of
-        Nothing ->
-            Nothing
-
-        Just age_ ->
-            case value of
-                Nothing ->
-                    Nothing
-
-                Just value_ ->
-                    let
-                        values =
-                            thresholds gender age_
-                    in
-                        Maybe.map (classify value_) values
+classifyBodyFat gender maybeAge maybeBodyFat =
+    let
+        maybeThresholds =
+            Maybe.andThen (\age -> thresholds gender age) maybeAge
+    in
+        Maybe.map3
+            (\_ bodyFat values -> classify bodyFat values)
+            maybeAge
+            maybeBodyFat
+            maybeThresholds
 
 
 classify : Float -> ThresholdValues -> Classification
