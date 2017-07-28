@@ -1,4 +1,4 @@
-dist/app.js
+dist/app-*.js
 dist/index.html
 node_modules
 elm-stuff
