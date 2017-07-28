@@ -27,6 +27,10 @@ import Material.Toggles as Toggles
 import Material.Options exposing (Style, css, cs, id, nop)
 import Material.Grid as Grid exposing (Device(..))
 import Material.Textfield as Textfield
+
+
+-- import Material.Select as Select
+
 import Material.Layout as Layout
 import Material.Scheme
 import Material.Options as Options
@@ -1197,6 +1201,39 @@ satisfactionIcon satisfaction =
                 Svg.svg svgStyle [ error_outline Color.blue 24 ]
 
 
+{-|
+
+    let
+        options =
+            ([ "3-Fold Jackson Pollack"
+             , "4-Fold NHCA"
+             , "7-Fold Jackson Pollack"
+             , "9-Fold Parillo"
+             , "All Methods"
+             ]
+                |> List.map
+                    (\string ->
+                        Select.item
+                            [ Item.onSelect (Select string) ]
+                            [ text string
+                            ]
+                    )
+            )
+    in
+        Select.render Mdl
+            [ 0 ]
+            model.mdl
+            [ Select.label "Caliper Method"
+            , Select.floatingLabel
+            , Select.ripple
+            , Select.value model.value
+            ]
+-}
+viewBodyFatIndexMethodSelect : Model -> Html Msg
+viewBodyFatIndexMethodSelect model =
+    div [ class "caliper-method-select" ] []
+
+
 viewBodyFatIndexForm : Model -> Html Msg
 viewBodyFatIndexForm model =
     let
@@ -1218,6 +1255,7 @@ viewBodyFatIndexForm model =
         div []
             [ [ gridCell gridStyle
                     [ viewBodyFatIndexGenderSelect model
+                    , viewBodyFatIndexMethodSelect model
                     , textField2 model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
                     , textField2 model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
                     , textField2 model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
