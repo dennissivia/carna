@@ -4,7 +4,6 @@ require('ace-css/css/ace.css');
 require('font-awesome/css/font-awesome.css');
 
 // Require so it gets copied to dist
-require('./index.html');
 require('./styles.css');
 
 var Elm = require('./Main.elm');
