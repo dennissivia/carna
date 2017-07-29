@@ -852,11 +852,7 @@ view model =
                     [ Options.nop, css "transition" "height 333ms ease-in-out 0s" ]
                     [ Layout.title [] [ text "Carna" ]
                     , Layout.spacer
-                    , Layout.navigation []
-                        [ Layout.link
-                            [ Layout.href "https://github.com/scepticulous/carna-ng" ]
-                            [ span [] [ text "github" ] ]
-                        ]
+                    , Layout.navigation [] []
                     ]
                 ]
             , drawer =
@@ -872,9 +868,6 @@ view model =
                     , Layout.link
                         [ Layout.href "/#body-fat", Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "body-fat" ]
-                    , Layout.link
-                        [ Layout.href "https://github.com/scepticulous/carna-ng" ]
-                        [ text "github" ]
                     ]
                 ]
             , tabs =
