@@ -43,7 +43,7 @@ import UrlParser exposing (Parser, QueryParser, top, (<?>), string, stringParam)
 import BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhca, caliper7foldsJp, caliper9foldsParillo)
 import BodyFatClassification exposing (..)
 import BodyIndexCalculation exposing (..)
-import BodyIndexClassification exposing (classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
+import BodyIndexClassification exposing (classifyBMI, classifyBMIWithAge, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
 import WelcomeContent exposing (..)
 import I18n exposing (Locale(..))
 import Utils exposing (Gender(..), Classification(..), Age)
@@ -488,7 +488,7 @@ storeBodyIndexRequest record =
     in
         Http.request
             { method = "POST"
-            , url = "http://old.carna.io/body_index_calculations/"
+            , url = "https://www.carna.io/old/body_index_calculations/"
             , headers = []
             , body = Http.jsonBody encoded
             , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
@@ -537,7 +537,7 @@ storeBodyFatRequest record =
     in
         Http.request
             { method = "POST"
-            , url = "http://old.carna.io/body_fat_calculations/"
+            , url = "http://www.carna.io/old/body_fat_calculations/"
             , headers = []
             , body = Http.jsonBody encoded
             , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
@@ -727,8 +727,16 @@ classifyBodyIndex bodyIndexResult age maybeGender =
     let
         gender =
             Maybe.withDefault GenderOther maybeGender
+
+        bmiClassification =
+            case age of
+                Nothing ->
+                    classifyBMI bodyIndexResult.bmi
+
+                Just age_ ->
+                    classifyBMIWithAge bodyIndexResult.bmi age_
     in
-        { bmi = classificationToSatisfaction <| classifyBMI bodyIndexResult.bmi
+        { bmi = classificationToSatisfaction <| bmiClassification
         , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age gender)
         , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
         , ponderalIndex = classificationToSatisfaction <| Just (classifyPonderalIndex bodyIndexResult.ponderalIndex)
@@ -908,29 +916,18 @@ gridCell styling =
 viewWelcomePage : Model -> Html Msg
 viewWelcomePage model =
     let
-        card1 =
-            carnaInfo model.locale
-
-        card2 =
-            bmiInfo model.locale
-
-        card3 =
-            calipometrie model.locale
-
-        card4 =
-            caliperMethods model.locale
-
-        card5 =
-            preferOldPage model.locale
+        cards =
+            [ news model.locale
+            , carnaInfo model.locale
+            , bmiInfo model.locale
+            , calipometrie model.locale
+            , caliperMethods model.locale
+            , preferOldPage model.locale
+            ]
     in
         div []
-            [ viewContentRow
-                [ viewContentCard card1
-                , viewContentCard card2
-                , viewContentCard card3
-                , viewContentCard card4
-                , viewContentCard card5
-                ]
+            [ List.map (\card -> viewContentCard card) cards
+                |> viewContentRow
             ]
 
 

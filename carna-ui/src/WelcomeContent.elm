@@ -48,3 +48,11 @@ preferOldPage locale =
     , subhead = Just <| I18n.t locale ContentSubHeadPreferOldPage
     , content = I18n.t locale ContentBodyPreferOldPage
     }
+
+
+news : Locale -> CardContent
+news locale =
+    { head = I18n.t locale ContentHeadNews
+    , subhead = Just <| I18n.t locale ContentSubHeadNews
+    , content = I18n.t locale ContentBodyNews
+    }

@@ -51,6 +51,9 @@ type Key
     | ContentHeadPreferOldPage
     | ContentSubHeadPreferOldPage
     | ContentBodyPreferOldPage
+    | ContentHeadNews
+    | ContentSubHeadNews
+    | ContentBodyNews
 
 
 type alias TranslationRecord =
@@ -308,14 +311,13 @@ knownTranslations key =
             }
 
         ContentBodyCarna ->
-            { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich den Körperfettanteil mittels
-                        [Calipometrie](https://de.wikipedia.org/wiki/Calipometrie),
+            { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich
                         den [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (nach WHO),
                         den [BAI](https://en.wikipedia.org/wiki/Body_adiposity_index) (Body Adiposity Index),
                         das Idealgewicht nach Broca index, den Ponderal-Index,
                         das Taille-Hüft-Verhältnis und die Körperoberfläche zu berechnen."""
-            , english = """With our [body index calculator](/#body-index), you can calculate your body-fat percentage,
-                         the [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (according to WHO),
+            , english = """With our [body index calculator](/#body-index), you can calculate your
+                         [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (according to WHO),
                          the BAI (Body Adiposity Index),
                          your ideal weight (Broca index), your Ponderal-Index, waist-hip-ratio
                          and your body surface area."""
@@ -388,6 +390,29 @@ knownTranslations key =
                            Visit [old.carna.io](http://old.carna.io) to get to the original experience.
                            It would be great if you could let us know how we can improve our app, by sending your ideas
                            to suggestions@carna.io."""
+            , french = "translationMissing"
+            }
+
+        ContentHeadNews ->
+            { german = "Neuigkeiten"
+            , english = "News"
+            , french = "translationMissing"
+            }
+
+        ContentSubHeadNews ->
+            { german = "Aktuelle Verbesserungen"
+            , english = "Recent improvements"
+            , french = "translationMissing"
+            }
+
+        ContentBodyNews ->
+            { german = """Um unsere Bewertung noch mehr auf Gesundheit zu fokussieren haben wir unsere BMI Klassifizierung
+                angepasst und das Alter mit folgenden Altersklassen in die Bewertung einbezogen:
+
+0-18 Jahre, 18 - 25 Jahre, ..., 55 - 65, mehr als 65 Jahre. """
+            , english = """We updated our BMI classification to improve the health awareness over beauty ideals, by adding individual handling for the following age groups:
+
+0 - 18 years, 18 - 25 years, ..., 55 - 65 years, older than 65 years"""
             , french = "translationMissing"
             }
 

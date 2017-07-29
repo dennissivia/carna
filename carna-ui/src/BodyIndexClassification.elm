@@ -1,4 +1,4 @@
-module BodyIndexClassification exposing (classifyBMI, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
+module BodyIndexClassification exposing (classifyBMI, classifyBMIWithAge, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
 
 import List.Extra as ListExtra
 import Maybe
@@ -39,14 +39,13 @@ CLASSIFICATIONS=[:lower_critical,:lower_warning,:normal,:upper_warning,:upper_cr
 -}
 bmiRanges : List BodyIndexRange
 bmiRanges =
-    [ { start = 0, end = 16, class = VeryBad Nothing }
-    , { start = 16, end = 17, class = Bad Nothing }
-    , { start = 17, end = 18.5, class = Bad Nothing }
-    , { start = 18.5, end = 25, class = Good Nothing }
-    , { start = 25, end = 30, class = Bad Nothing }
-    , { start = 30, end = 35, class = VeryBad Nothing }
-    , { start = 35, end = 40, class = VeryBad Nothing }
-    , { start = 40, end = 1000, class = VeryBad Nothing }
+    [ { start = 0, end = 16, class = VeryBad (Just "Much too low") }
+    , { start = 16, end = 18.5, class = Bad (Just "Too low") }
+    , { start = 18.5, end = 25, class = Good (Just "ideal") }
+    , { start = 25, end = 30, class = Bad (Just "Too high") }
+    , { start = 30, end = 35, class = VeryBad (Just "obesity 1") }
+    , { start = 35, end = 40, class = VeryBad (Just "obesity 2") }
+    , { start = 40, end = 1000, class = VeryBad (Just "obesity 3") }
     ]
 
 
@@ -58,8 +57,39 @@ classifyBMI bmi =
     in
         case match of
             Just rec ->
-                Just rec.class
+                Debug.log ("rec is " ++ (toString match)) (Just rec.class)
 
+            Nothing ->
+                Nothing
+
+
+classifyBMIWithAge : Float -> Age -> Maybe Classification
+classifyBMIWithAge bmi age =
+    let
+        offset =
+            if age <= 18 then
+                0
+            else if age >= 19 && age <= 24 then
+                1
+            else if age >= 25 && age <= 34 then
+                2
+            else if age >= 35 && age <= 44 then
+                3
+            else if age >= 45 && age <= 54 then
+                4
+            else if age >= 55 && age <= 64 then
+                5
+            else
+                6
+
+        match =
+            ListExtra.find (\r -> bmi >= (r.start + offset) && bmi < (r.end + offset)) bmiRanges
+    in
+        case match of
+            Just rec ->
+                Debug.log ("rec is " ++ (toString match)) (Just rec.class)
+
+            -- Just rec.class
             Nothing ->
                 Nothing
 
