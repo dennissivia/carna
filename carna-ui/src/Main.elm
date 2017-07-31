@@ -9,6 +9,7 @@ import Result.Extra exposing (isOk)
 import Maybe.Extra as MaybeExtra
 import Color
 import Markdown
+import Window
 import Dom.Scroll
 import Html exposing (programWithFlags, div, text, span, h1, i, Html)
 import Html.Attributes exposing (href, class, style, width)
@@ -59,6 +60,7 @@ type alias Model =
     { count : Int
     , mdl : Material.Model
     , selectedTab : Int
+    , screenWidth : Maybe Int
     , route : Route
     , locale : Locale
     , bodyIndex : BodyIndexInput
@@ -168,6 +170,7 @@ type Msg
     | NoOp
     | BodyIndexStored (Result Http.Error String)
     | BodyFatStored (Result Http.Error String)
+    | ScreenWidthChanged Window.Size
 
 
 type BodyIndexMsg
@@ -221,7 +224,11 @@ type alias Mdl =
 
 init : Flags -> Location -> ( Model, Cmd Msg )
 init flags location =
-    ( initialModel flags location, Cmd.none )
+    let
+        getWindowWidth =
+            Task.perform ScreenWidthChanged Window.size
+    in
+        ( initialModel flags location, getWindowWidth )
 
 
 initialModel : Flags -> Location -> Model
@@ -238,6 +245,7 @@ initialModel flags location =
         , route = initialRoute
         , selectedTab = routeToTabId initialRoute
         , locale = toLocale flags.userLanguage
+        , screenWidth = Nothing
         , bodyIndex = initialBodyIndex
         , bodyIndexSubmitted = False
         , bodyFatIndex = initialBodyFatIndex
@@ -454,6 +462,9 @@ update msg model =
                     Debug.log "change url cmd" <| changeUrl newModel
             in
                 Debug.log "NavigateTo recieved " newModel ! [ newUrlCmd ]
+
+        ScreenWidthChanged newSize ->
+            { model | screenWidth = Just newSize.width } ! []
 
         BodyIndexStored httpResponse ->
             model ! []
@@ -853,7 +864,7 @@ view model =
             , Layout.fixedHeader
 
             -- , Layout.fixedTabs
-            -- , Layout.fixedDrawer
+            , Layout.fixedDrawer |> Material.Options.when (Maybe.map (flip (>) 1024) model.screenWidth |> Maybe.withDefault False)
             ]
             { header =
                 [ Layout.row
@@ -864,7 +875,7 @@ view model =
                     ]
                 ]
             , drawer =
-                [ Layout.title [] [ text "Carna" ]
+                [ Layout.title [ cs "drawer-logo" ] [ text "" ]
                 , Layout.navigation
                     []
                     [ Layout.link
@@ -879,9 +890,9 @@ view model =
                     ]
                 ]
             , tabs =
-                ( [ text "Welcome", text "Body Index", text "Body Fat" ]
-                , [ MColor.background (MColor.color primaryColor MColor.S400)
-                  ]
+                ( []
+                  --[ text "Welcome", text "Body Index", text "Body Fat" ]
+                , [ MColor.background (MColor.color primaryColor MColor.S400) ]
                 )
             , main = [ viewBody model ]
             }
@@ -1496,6 +1507,6 @@ main =
         UrlChange
         { init = init
         , view = view
-        , subscriptions = always Sub.none
+        , subscriptions = always <| Window.resizes ScreenWidthChanged
         , update = update
         }

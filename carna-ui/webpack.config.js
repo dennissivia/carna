@@ -7,6 +7,7 @@ module.exports = {
   entry: {
     app: [
         './src/index.js',
+        './src/logo.png',
     ]
   },
 
@@ -14,6 +15,7 @@ module.exports = {
     path: path.resolve(__dirname + '/dist'),
     filename: '[name]-[hash].js',
   },
+
   plugins: [
     new HtmlWebpackPlugin({
       template: 'src/index.template.ejs',
@@ -43,8 +45,8 @@ module.exports = {
       {
         test:    /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
-        // loader:  'elm-webpack-loader?verbose=true&warn=true&debug=false',
-        loader:  'elm-webpack-loader?verbose=true&warn=true&debug=true',
+        loader:  'elm-webpack-loader?verbose=true&warn=true&debug=false',
+        // loader:  'elm-webpack-loader?verbose=true&warn=true&debug=true',
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
@@ -53,6 +55,10 @@ module.exports = {
       {
         test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         loader: 'file-loader',
+      },
+      {
+         test: /\.png$/,
+         loader:  'file-loader?name=[name].[ext]',
       },
     ],
 
