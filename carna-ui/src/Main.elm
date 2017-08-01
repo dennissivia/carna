@@ -625,31 +625,31 @@ updateSkinFolds : SkinfoldInput -> SkinfoldMsg -> SkinfoldInput
 updateSkinFolds skinFolds msg =
     case msg of
         SetChest value ->
-            { skinFolds | chest = Just <| validateFloat value }
+            { skinFolds | chest = Just <| validateSkinfold value }
 
         SetArmpit value ->
-            { skinFolds | armpit = Just <| validateFloat value }
+            { skinFolds | armpit = Just <| validateSkinfold value }
 
         SetSubscapular value ->
-            { skinFolds | subscapular = Just <| validateFloat value }
+            { skinFolds | subscapular = Just <| validateSkinfold value }
 
         SetTriceps value ->
-            { skinFolds | triceps = Just <| validateFloat value }
+            { skinFolds | triceps = Just <| validateSkinfold value }
 
         SetBiceps value ->
-            { skinFolds | biceps = Just <| validateFloat value }
+            { skinFolds | biceps = Just <| validateSkinfold value }
 
         SetAbdomen value ->
-            { skinFolds | abdomen = Just <| validateFloat value }
+            { skinFolds | abdomen = Just <| validateSkinfold value }
 
         SetIliacCrest value ->
-            { skinFolds | iliacCrest = Just <| validateFloat value }
+            { skinFolds | iliacCrest = Just <| validateSkinfold value }
 
         SetThigh value ->
-            { skinFolds | thigh = Just <| validateFloat value }
+            { skinFolds | thigh = Just <| validateSkinfold value }
 
         SetCalf value ->
-            { skinFolds | calf = Just <| validateFloat value }
+            { skinFolds | calf = Just <| validateSkinfold value }
 
 
 optionalToMaybe : OptionalValidatedInput a -> Maybe a
@@ -803,26 +803,37 @@ Result.mapError ((++) "Age") << validateChainFloat
 validateAge : String -> Result String Age
 validateAge =
     validateChainFloat
+        >> Result.andThen (validateRange 2 150)
 
 
 validateHeight : String -> Result String Float
 validateHeight =
     validateChainFloat
+        >> Result.andThen (validateRange 50 280)
 
 
 validateWeight : String -> Result String Float
 validateWeight =
     validateChainFloat
+        >> Result.andThen (validateRange 20 500)
 
 
 validateWaist : String -> Result String Float
 validateWaist =
     validateChainFloat
+        >> Result.andThen (validateRange 20 250)
 
 
 validateHip : String -> Result String Float
 validateHip =
     validateChainFloat
+        >> Result.andThen (validateRange 20 250)
+
+
+validateSkinfold : String -> Result String Float
+validateSkinfold =
+    validateChainFloat
+        >> Result.andThen (validateRange 2 30)
 
 
 validateChainFloat : String -> Result String Float
@@ -830,6 +841,16 @@ validateChainFloat val =
     Ok val
         |> Result.andThen validatePresence
         |> Result.andThen validateFloat
+
+
+validateRange : Float -> Float -> Float -> Result String Float
+validateRange lower upper val =
+    if val < lower then
+        Err <| "should be between " ++ (toString lower) ++ " and " ++ (toString upper)
+    else if val > upper then
+        Err <| "should be between " ++ (toString lower) ++ " and " ++ (toString upper)
+    else
+        Ok val
 
 
 {-| FIXME we can only return I18n.Key as Err if we
