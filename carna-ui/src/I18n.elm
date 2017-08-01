@@ -155,7 +155,7 @@ knownTranslations key =
             }
 
         InvalidResultContent ->
-            { german = "Leider konnten wir kein Ergebnis berechnen. Moeglicherweise ist die Eingabe nicht vollstaendig oder fehlerhaft."
+            { german = "Leider konnten wir kein Ergebnis berechnen. Möglicherweise ist die Eingabe nicht vollständig oder fehlerhaft."
             , english = "Sorry, we were not able to calculate your results. Maybe some inputs are missing or incorrect?"
             , french = "translationMissing"
             }
@@ -288,7 +288,7 @@ knownTranslations key =
 
         ContentBodyBMI ->
             { german = """Der BMI ist eine Maßzahl für die Bewertung des Körpergewichts eines Menschen.
-                          Er soll helfen Untergewicht, Idealgewicht und Uebergewicht zu erkennen.
+                          Er soll helfen Untergewicht, Idealgewicht und Übergewicht zu erkennen.
                           Der BMI ist allerdings eher ein grober Richtwert, der u.A. nicht die individuelle
                           Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe berücksichtigt."""
             , english = """The BMI is derived from the weight and height of an individual.
@@ -384,8 +384,8 @@ knownTranslations key =
 
         ContentBodyPreferOldPage ->
             { german = """Aus diesem Grund haben wir die alten Seite unter [old.carna.io](http://old.carna.io)
-                          noch immer online. Ausserdem wuerden wir gern wissen, was wir besser machen oder anpassen sollen.
-                          Ein kurzes feedback an suggestions@carna.io wuerde uns sehr helfen"""
+                          noch immer online. Ausserdem würden wir gern wissen, was wir besser machen oder anpassen sollen.
+                          Ein kurzes feedback an suggestions@carna.io würde uns sehr helfen"""
             , english = """Just in case this would happen we decided to keep the old page around for now.
                            Visit [old.carna.io](http://old.carna.io) to get to the original experience.
                            It would be great if you could let us know how we can improve our app, by sending your ideas
