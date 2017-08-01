@@ -578,19 +578,19 @@ updateBodyIndex bodyIndex msg =
         newBodyIndex =
             case msg of
                 SetAge newAge ->
-                    { bodyIndex | age = (Just <| validateAge newAge) }
+                    { bodyIndex | age = (updateInputValue validateAge newAge) }
 
                 SetHeight newHeight ->
-                    { bodyIndex | height = (Just <| validateHeight newHeight) }
+                    { bodyIndex | height = (updateInputValue validateHeight newHeight) }
 
                 SetWeight newWeight ->
-                    { bodyIndex | weight = (Just <| validateWeight newWeight) }
+                    { bodyIndex | weight = (updateInputValue validateWeight newWeight) }
 
                 SetWaist newWaist ->
-                    { bodyIndex | waist = (Just <| validateWaist newWaist) }
+                    { bodyIndex | waist = (updateInputValue validateWaist newWaist) }
 
                 SetHip newHip ->
-                    { bodyIndex | hipSize = (Just <| validateHip newHip) }
+                    { bodyIndex | hipSize = (updateInputValue validateHip newHip) }
 
                 SetGender gender ->
                     { bodyIndex | gender = Just gender }
@@ -604,13 +604,13 @@ updateBodyFatIndex bodyFatIndex msg =
         newBodyFatIndex =
             case msg of
                 SetBfiAge newAge ->
-                    { bodyFatIndex | age = (Just <| validateAge newAge) }
+                    { bodyFatIndex | age = (updateInputValue validateAge newAge) }
 
                 SetBfiHeight height ->
-                    { bodyFatIndex | height = (Just <| validateHeight height) }
+                    { bodyFatIndex | height = (updateInputValue validateHeight height) }
 
                 SetBfiWeight weight ->
-                    { bodyFatIndex | weight = (Just <| validateAge weight) }
+                    { bodyFatIndex | weight = (updateInputValue validateAge weight) }
 
                 SetBfiGender gender ->
                     { bodyFatIndex | gender = Just gender }
@@ -625,31 +625,36 @@ updateSkinFolds : SkinfoldInput -> SkinfoldMsg -> SkinfoldInput
 updateSkinFolds skinFolds msg =
     case msg of
         SetChest value ->
-            { skinFolds | chest = Just <| validateSkinfold value }
+            { skinFolds | chest = updateInputValue validateSkinfold value }
 
         SetArmpit value ->
-            { skinFolds | armpit = Just <| validateSkinfold value }
+            { skinFolds | armpit = updateInputValue validateSkinfold value }
 
         SetSubscapular value ->
-            { skinFolds | subscapular = Just <| validateSkinfold value }
+            { skinFolds | subscapular = updateInputValue validateSkinfold value }
 
         SetTriceps value ->
-            { skinFolds | triceps = Just <| validateSkinfold value }
+            { skinFolds | triceps = updateInputValue validateSkinfold value }
 
         SetBiceps value ->
-            { skinFolds | biceps = Just <| validateSkinfold value }
+            { skinFolds | biceps = updateInputValue validateSkinfold value }
 
         SetAbdomen value ->
-            { skinFolds | abdomen = Just <| validateSkinfold value }
+            { skinFolds | abdomen = updateInputValue validateSkinfold value }
 
         SetIliacCrest value ->
-            { skinFolds | iliacCrest = Just <| validateSkinfold value }
+            { skinFolds | iliacCrest = updateInputValue validateSkinfold value }
 
         SetThigh value ->
-            { skinFolds | thigh = Just <| validateSkinfold value }
+            { skinFolds | thigh = updateInputValue validateSkinfold value }
 
         SetCalf value ->
-            { skinFolds | calf = Just <| validateSkinfold value }
+            { skinFolds | calf = updateInputValue validateSkinfold value }
+
+
+updateInputValue : (String -> Result String Float) -> String -> Maybe (Result String Float)
+updateInputValue fn input =
+    Just (fn input)
 
 
 optionalToMaybe : OptionalValidatedInput a -> Maybe a

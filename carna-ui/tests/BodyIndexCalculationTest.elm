@@ -21,18 +21,18 @@ suite =
                     Expect.equal True (isInfinite <| calculateBMI (Just 78) (Just 0))
             ]
         , describe "input validation"
-            [ describe "validateAge"
+            [ describe "validateChainFloat"
                 [ fuzz float "parses numbers" <|
                     \randomNum ->
                         (toString randomNum)
-                            |> validateAge
+                            |> validateChainFloat
                             |> Expect.equal (Ok randomNum)
                 , fuzz (list char) "does not accept empty strings" <|
                     \chars ->
                         case (String.trim (String.fromList chars)) of
                             "" ->
                                 String.fromList chars
-                                    |> validateAge
+                                    |> validateChainFloat
                                     |> Expect.equal (Err "should not be empty")
 
                             _ ->
@@ -42,7 +42,7 @@ suite =
                         case (contains (regex "[^-+.0-9]") (String.trim <| String.fromList chars)) of
                             True ->
                                 String.fromList chars
-                                    |> validateAge
+                                    |> validateChainFloat
                                     |> Expect.equal (Err "is not a valid number")
 
                             _ ->
