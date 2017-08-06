@@ -5,7 +5,6 @@ import Regex
 import Http
 import Task
 import String.Extra as StringExtra
-import Result.Extra exposing (isOk)
 import Maybe.Extra as MaybeExtra
 import Color
 import Markdown
@@ -71,7 +70,14 @@ type alias Model =
 
 
 type alias OptionalValidatedInput a =
-    Maybe (Result String a)
+    { value : Maybe a
+    , error : Maybe String
+    , isValid : Bool
+    }
+
+
+
+-- Maybe (Result String a)
 
 
 type alias BodyIndexInput =
@@ -130,15 +136,15 @@ type alias BodyIndexResultRating =
 {-| used for getting /storing input and presenting errors
 -}
 type alias SkinfoldInput =
-    { armpit : Maybe (Result String Float)
-    , subscapular : Maybe (Result String Float) -- shoulder blade
-    , chest : Maybe (Result String Float)
-    , triceps : Maybe (Result String Float)
-    , biceps : Maybe (Result String Float)
-    , abdomen : Maybe (Result String Float)
-    , iliacCrest : Maybe (Result String Float) -- Hip
-    , thigh : Maybe (Result String Float)
-    , calf : Maybe (Result String Float)
+    { armpit : OptionalValidatedInput Float
+    , subscapular : OptionalValidatedInput Float -- shoulder blade
+    , chest : OptionalValidatedInput Float
+    , triceps : OptionalValidatedInput Float
+    , biceps : OptionalValidatedInput Float
+    , abdomen : OptionalValidatedInput Float
+    , iliacCrest : OptionalValidatedInput Float -- Hip
+    , thigh : OptionalValidatedInput Float
+    , calf : OptionalValidatedInput Float
     }
 
 
@@ -253,6 +259,19 @@ initialModel flags location =
         }
 
 
+validInput : a -> OptionalValidatedInput a
+validInput val =
+    { value = Just val, error = Nothing, isValid = True }
+
+
+missingInput : OptionalValidatedInput a
+missingInput =
+    { value = Nothing
+    , error = Nothing
+    , isValid = True
+    }
+
+
 toLocale : String -> Locale
 toLocale userLanguage =
     let
@@ -308,11 +327,11 @@ changeUrl =
 
 initialBodyIndex : BodyIndexInput
 initialBodyIndex =
-    { age = Nothing
-    , height = Nothing
-    , weight = Nothing
-    , waist = Nothing
-    , hipSize = Nothing
+    { age = missingInput
+    , height = missingInput
+    , weight = missingInput
+    , waist = missingInput
+    , hipSize = missingInput
     , gender = Nothing
     , result = Nothing
     , isValid = False
@@ -321,20 +340,20 @@ initialBodyIndex =
 
 initialBodyFatIndex : BodyFatIndex
 initialBodyFatIndex =
-    { age = Nothing
-    , height = Nothing
-    , weight = Nothing
+    { age = missingInput
+    , height = missingInput
+    , weight = missingInput
     , gender = Nothing
     , skinFolds =
-        { armpit = Nothing
-        , subscapular = Nothing
-        , chest = Nothing
-        , triceps = Nothing
-        , biceps = Nothing
-        , abdomen = Nothing
-        , iliacCrest = Nothing
-        , thigh = Nothing
-        , calf = Nothing
+        { armpit = missingInput
+        , subscapular = missingInput
+        , chest = missingInput
+        , triceps = missingInput
+        , biceps = missingInput
+        , abdomen = missingInput
+        , iliacCrest = missingInput
+        , thigh = missingInput
+        , calf = missingInput
         }
     , result = Nothing
     , isValid = False
@@ -652,14 +671,19 @@ updateSkinFolds skinFolds msg =
             { skinFolds | calf = updateInputValue validateSkinfold value }
 
 
-updateInputValue : (String -> Result String Float) -> String -> Maybe (Result String Float)
+updateInputValue : (String -> Result String Float) -> String -> OptionalValidatedInput Float
 updateInputValue fn input =
-    Just (fn input)
+    case (fn input) of
+        Err err ->
+            { value = Nothing, error = Just err, isValid = False }
+
+        Ok value ->
+            { value = Just value, error = Nothing, isValid = True }
 
 
 optionalToMaybe : OptionalValidatedInput a -> Maybe a
 optionalToMaybe =
-    MaybeExtra.join << Maybe.map Result.toMaybe
+    .value
 
 
 toSkinfoldValues : SkinfoldInput -> Skinfolds
@@ -786,20 +810,12 @@ are optional.
 -}
 validateBodyIndex : BodyIndexInput -> Bool
 validateBodyIndex bodyIndex =
-    Maybe.map3 (\a b c -> List.all isOk [ a, b, c ])
-        bodyIndex.age
-        bodyIndex.height
-        bodyIndex.weight
-        |> Maybe.withDefault False
+    List.all (.value >> MaybeExtra.isJust) [ bodyIndex.age, bodyIndex.height, bodyIndex.weight ]
 
 
 validateBodyFatIndex : BodyFatIndex -> Bool
 validateBodyFatIndex bodyFatIndex =
-    Maybe.map3 (\a b c -> List.all isOk [ a, b, c ])
-        bodyFatIndex.age
-        bodyFatIndex.height
-        bodyFatIndex.weight
-        |> Maybe.withDefault False
+    List.all (.value >> MaybeExtra.isJust) [ bodyFatIndex.age, bodyFatIndex.height, bodyFatIndex.weight ]
 
 
 {-| We could prepend error information this way
@@ -1007,11 +1023,11 @@ viewBodyIndexForm model =
             [ div
                 []
                 [ viewBodyIndexGenderSelect model
-                , textField2 model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
-                , textField2 model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
-                , textField2 model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
-                , textField2 model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
-                , textField2 model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
+                , textField model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
+                , textField model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
+                , textField model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
+                , textField model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
+                , textField model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
                 , Button.render Mdl
                     [ 5 ]
                     model.mdl
@@ -1148,7 +1164,7 @@ viewBodyIndexResulTable bodyIndex locale =
         Just result ->
             let
                 bodyIndexRating =
-                    classifyBodyIndex result (Maybe.andThen Result.toMaybe bodyIndex.age) bodyIndex.gender
+                    classifyBodyIndex result bodyIndex.age.value bodyIndex.gender
 
                 t_ =
                     I18n.t locale
@@ -1284,21 +1300,21 @@ viewBodyFatIndexForm model =
             [ [ gridCell gridStyle
                     [ viewBodyFatIndexGenderSelect model
                     , viewBodyFatIndexMethodSelect model
-                    , textField2 model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
-                    , textField2 model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
-                    , textField2 model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
-                    , textField2 model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
-                    , textField2 model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
-                    , textField2 model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
+                    , textField model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
+                    , textField model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
+                    , textField model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
+                    , textField model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
+                    , textField model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
+                    , textField model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
                     ]
               , gridCell gridStyle
                     [ div [] [ span [] [] ]
-                    , textField2 model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
-                    , textField2 model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
-                    , textField2 model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
-                    , textField2 model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
-                    , textField2 model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
-                    , textField2 model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
+                    , textField model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
+                    , textField model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
+                    , textField model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
+                    , textField model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
+                    , textField model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
+                    , textField model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
                     , Button.render Mdl
                         [ 5 ]
                         model.mdl
@@ -1328,47 +1344,21 @@ viewBodyFatValue =
     Maybe.withDefault "N/A" << Maybe.map toString
 
 
-textField : Mdl -> Int -> String -> Result String num -> (String -> Msg) -> Html Msg
+textField : Mdl -> Int -> String -> OptionalValidatedInput num -> (String -> Msg) -> Html Msg
 textField mdl i label value f =
     let
         content =
-            case value of
-                Ok num ->
-                    Textfield.value (toString num)
+            case value.error of
+                Just err ->
+                    Textfield.error err
 
-                Err error ->
-                    Textfield.error error
-    in
-        div []
-            [ Textfield.render
-                Mdl
-                [ i ]
-                mdl
-                [ Textfield.label label
-                , Textfield.floatingLabel
-                , Textfield.text_
-                , content
-                , Options.onInput f
-                ]
-                []
-            ]
-
-
-textField2 : Mdl -> Int -> String -> OptionalValidatedInput num -> (String -> Msg) -> Html Msg
-textField2 mdl i label value f =
-    let
-        content =
-            case value of
                 Nothing ->
-                    nop
+                    case value.value of
+                        Just val ->
+                            Textfield.value (toString val)
 
-                Just result ->
-                    case result of
-                        Ok num ->
-                            Textfield.value (toString num)
-
-                        Err error ->
-                            Textfield.error error
+                        _ ->
+                            nop
     in
         div []
             [ Textfield.render
