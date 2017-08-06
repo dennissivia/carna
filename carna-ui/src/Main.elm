@@ -130,15 +130,15 @@ type alias BodyIndexResultRating =
 {-| used for getting /storing input and presenting errors
 -}
 type alias SkinfoldInput =
-    { armpit : Maybe (Result String Float)
-    , subscapular : Maybe (Result String Float) -- shoulder blade
-    , chest : Maybe (Result String Float)
-    , triceps : Maybe (Result String Float)
-    , biceps : Maybe (Result String Float)
-    , abdomen : Maybe (Result String Float)
-    , iliacCrest : Maybe (Result String Float) -- Hip
-    , thigh : Maybe (Result String Float)
-    , calf : Maybe (Result String Float)
+    { armpit : OptionalValidatedInput Float
+    , subscapular : OptionalValidatedInput Float -- shoulder blade
+    , chest : OptionalValidatedInput Float
+    , triceps : OptionalValidatedInput Float
+    , biceps : OptionalValidatedInput Float
+    , abdomen : OptionalValidatedInput Float
+    , iliacCrest : OptionalValidatedInput Float -- Hip
+    , thigh : OptionalValidatedInput Float
+    , calf : OptionalValidatedInput Float
     }
 
 
@@ -652,14 +652,14 @@ updateSkinFolds skinFolds msg =
             { skinFolds | calf = updateInputValue validateSkinfold value }
 
 
-updateInputValue : (String -> Result String Float) -> String -> Maybe (Result String Float)
+updateInputValue : (String -> Result String Float) -> String -> OptionalValidatedInput Float
 updateInputValue fn input =
     Just (fn input)
 
 
 optionalToMaybe : OptionalValidatedInput a -> Maybe a
 optionalToMaybe =
-    MaybeExtra.join << Maybe.map Result.toMaybe
+    Maybe.andThen Result.toMaybe
 
 
 toSkinfoldValues : SkinfoldInput -> Skinfolds
@@ -1007,11 +1007,11 @@ viewBodyIndexForm model =
             [ div
                 []
                 [ viewBodyIndexGenderSelect model
-                , textField2 model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
-                , textField2 model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
-                , textField2 model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
-                , textField2 model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
-                , textField2 model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
+                , textField model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
+                , textField model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
+                , textField model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
+                , textField model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
+                , textField model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
                 , Button.render Mdl
                     [ 5 ]
                     model.mdl
@@ -1148,7 +1148,7 @@ viewBodyIndexResulTable bodyIndex locale =
         Just result ->
             let
                 bodyIndexRating =
-                    classifyBodyIndex result (Maybe.andThen Result.toMaybe bodyIndex.age) bodyIndex.gender
+                    classifyBodyIndex result (optionalToMaybe bodyIndex.age) bodyIndex.gender
 
                 t_ =
                     I18n.t locale
@@ -1284,21 +1284,21 @@ viewBodyFatIndexForm model =
             [ [ gridCell gridStyle
                     [ viewBodyFatIndexGenderSelect model
                     , viewBodyFatIndexMethodSelect model
-                    , textField2 model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
-                    , textField2 model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
-                    , textField2 model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
-                    , textField2 model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
-                    , textField2 model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
-                    , textField2 model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
+                    , textField model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
+                    , textField model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
+                    , textField model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
+                    , textField model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
+                    , textField model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
+                    , textField model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
                     ]
               , gridCell gridStyle
                     [ div [] [ span [] [] ]
-                    , textField2 model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
-                    , textField2 model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
-                    , textField2 model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
-                    , textField2 model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
-                    , textField2 model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
-                    , textField2 model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
+                    , textField model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
+                    , textField model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
+                    , textField model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
+                    , textField model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
+                    , textField model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
+                    , textField model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
                     , Button.render Mdl
                         [ 5 ]
                         model.mdl
@@ -1328,34 +1328,8 @@ viewBodyFatValue =
     Maybe.withDefault "N/A" << Maybe.map toString
 
 
-textField : Mdl -> Int -> String -> Result String num -> (String -> Msg) -> Html Msg
+textField : Mdl -> Int -> String -> OptionalValidatedInput num -> (String -> Msg) -> Html Msg
 textField mdl i label value f =
-    let
-        content =
-            case value of
-                Ok num ->
-                    Textfield.value (toString num)
-
-                Err error ->
-                    Textfield.error error
-    in
-        div []
-            [ Textfield.render
-                Mdl
-                [ i ]
-                mdl
-                [ Textfield.label label
-                , Textfield.floatingLabel
-                , Textfield.text_
-                , content
-                , Options.onInput f
-                ]
-                []
-            ]
-
-
-textField2 : Mdl -> Int -> String -> OptionalValidatedInput num -> (String -> Msg) -> Html Msg
-textField2 mdl i label value f =
     let
         content =
             case value of
