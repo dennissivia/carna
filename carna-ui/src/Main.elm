@@ -1018,6 +1018,7 @@ viewBodyIndexForm model =
                     [ Button.raised
                     , Button.colored
                     , Button.ripple
+                    , Button.disabled |> Material.Options.when (not model.bodyIndex.isValid)
                     , Options.onClick BodyIndexSubmit
                     ]
                     [ text (I18n.t model.locale I18n.CalculateBodyIndex) ]
@@ -1304,6 +1305,7 @@ viewBodyFatIndexForm model =
                         [ Button.raised
                         , Button.colored
                         , Button.ripple
+                        , Button.disabled |> Material.Options.when (not bodyFatIndex.isValid)
                         , Options.onClick BodyFatIndexSubmit
                         ]
                         [ text "Calculate body fat" ]
