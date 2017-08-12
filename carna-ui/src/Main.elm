@@ -5,8 +5,6 @@ import Regex
 import Http
 import Task
 import String.Extra as StringExtra
-import Result.Extra exposing (isOk)
-import Maybe.Extra as MaybeExtra
 import Color
 import Markdown
 import Window
@@ -22,7 +20,6 @@ import Material
 import Material.Table as Table
 import Material.Elevation as Elevation
 import Material.Card as Card
-import Material.Dialog as Dialog
 import Material.Color as MColor
 import Material.Toggles as Toggles
 import Material.Options exposing (Style, css, cs, id, nop)
@@ -48,6 +45,7 @@ import BodyIndexClassification exposing (classifyBMI, classifyBMIWithAge, classi
 import WelcomeContent exposing (..)
 import I18n exposing (Locale(..))
 import Utils exposing (Gender(..), Classification(..), Age)
+import Validated exposing (..)
 
 
 type alias Flags =
@@ -71,7 +69,7 @@ type alias Model =
 
 
 type alias OptionalValidatedInput a =
-    Maybe (Result String a)
+    ValidatedValue a
 
 
 type alias BodyIndexInput =
@@ -253,6 +251,46 @@ initialModel flags location =
         }
 
 
+initialBodyIndex : BodyIndexInput
+initialBodyIndex =
+    { age = Initial
+    , height = Initial
+    , weight = Initial
+    , waist = Initial
+    , hipSize = Initial
+    , gender = Nothing
+    , result = Nothing
+    , isValid = False
+    }
+
+
+initialBodyFatIndex : BodyFatIndex
+initialBodyFatIndex =
+    { age = Initial
+    , height = Initial
+    , weight = Initial
+    , gender = Nothing
+    , skinFolds =
+        { armpit = Initial
+        , subscapular = Initial
+        , chest = Initial
+        , triceps = Initial
+        , biceps = Initial
+        , abdomen = Initial
+        , iliacCrest = Initial
+        , thigh = Initial
+        , calf = Initial
+        }
+    , result = Nothing
+    , isValid = False
+    }
+
+
+optionalToMaybe : OptionalValidatedInput a -> Maybe a
+optionalToMaybe =
+    Validated.toMaybe
+
+
 toLocale : String -> Locale
 toLocale userLanguage =
     let
@@ -304,41 +342,6 @@ routeToPath route =
 changeUrl : Model -> Cmd msg
 changeUrl =
     Navigation.newUrl << toUrl << .selectedTab
-
-
-initialBodyIndex : BodyIndexInput
-initialBodyIndex =
-    { age = Nothing
-    , height = Nothing
-    , weight = Nothing
-    , waist = Nothing
-    , hipSize = Nothing
-    , gender = Nothing
-    , result = Nothing
-    , isValid = False
-    }
-
-
-initialBodyFatIndex : BodyFatIndex
-initialBodyFatIndex =
-    { age = Nothing
-    , height = Nothing
-    , weight = Nothing
-    , gender = Nothing
-    , skinFolds =
-        { armpit = Nothing
-        , subscapular = Nothing
-        , chest = Nothing
-        , triceps = Nothing
-        , biceps = Nothing
-        , abdomen = Nothing
-        , iliacCrest = Nothing
-        , thigh = Nothing
-        , calf = Nothing
-        }
-    , result = Nothing
-    , isValid = False
-    }
 
 
 primaryColor : MColor.Hue
@@ -654,12 +657,7 @@ updateSkinFolds skinFolds msg =
 
 updateInputValue : (String -> Result String Float) -> String -> OptionalValidatedInput Float
 updateInputValue fn input =
-    Just (fn input)
-
-
-optionalToMaybe : OptionalValidatedInput a -> Maybe a
-optionalToMaybe =
-    Maybe.andThen Result.toMaybe
+    fromResult (fn input) input
 
 
 toSkinfoldValues : SkinfoldInput -> Skinfolds
@@ -783,28 +781,28 @@ classificationToSatisfaction class =
 We only require the minimal set of fields to
 do at least one computation. Thus waist and hip
 are optional.
+
+Consider: <https://elmlang.slack.com/archives/C192T0Q1E/p1502053638872047>
+
 -}
 validateBodyIndex : BodyIndexInput -> Bool
 validateBodyIndex bodyIndex =
-    Maybe.map3 (\a b c -> List.all isOk [ a, b, c ])
-        bodyIndex.age
-        bodyIndex.height
-        bodyIndex.weight
-        |> Maybe.withDefault False
+    List.all isValid
+        [ bodyIndex.age
+        , bodyIndex.height
+        , bodyIndex.weight
+        ]
 
 
 validateBodyFatIndex : BodyFatIndex -> Bool
 validateBodyFatIndex bodyFatIndex =
-    Maybe.map3 (\a b c -> List.all isOk [ a, b, c ])
-        bodyFatIndex.age
-        bodyFatIndex.height
-        bodyFatIndex.weight
-        |> Maybe.withDefault False
+    List.all isValid
+        [ bodyFatIndex.age
+        , bodyFatIndex.height
+        , bodyFatIndex.weight
+        ]
 
 
-{-| We could prepend error information this way
-Result.mapError ((++) "Age") << validateChainFloat
--}
 validateAge : String -> Result String Age
 validateAge =
     validateChainFloat
@@ -1333,28 +1331,30 @@ textField mdl i label value f =
     let
         content =
             case value of
-                Nothing ->
-                    nop
+                Initial ->
+                    []
 
-                Just result ->
-                    case result of
-                        Ok num ->
-                            Textfield.value (toString num)
+                Valid num ->
+                    [ Textfield.value (toString num) ]
 
-                        Err error ->
-                            Textfield.error error
+                Invalid raw error ->
+                    [ Textfield.value raw
+                    , Textfield.error error
+                    ]
     in
         div []
             [ Textfield.render
                 Mdl
                 [ i ]
                 mdl
-                [ Textfield.label label
-                , Textfield.floatingLabel
-                , Textfield.text_
-                , content
-                , Options.onInput f
-                ]
+                (List.append
+                    [ Textfield.label label
+                    , Textfield.floatingLabel
+                    , Textfield.text_
+                    , Options.onInput f
+                    ]
+                    content
+                )
                 []
             ]
 
