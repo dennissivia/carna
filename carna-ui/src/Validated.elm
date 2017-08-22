@@ -27,6 +27,16 @@ fromResult result rawInput =
             Invalid rawInput err
 
 
+fromMaybe : Maybe a -> ValidatedValue a
+fromMaybe maybe =
+    case maybe of
+        Nothing ->
+            Invalid "" ""
+
+        Just x ->
+            Valid x
+
+
 toMaybe : ValidatedValue a -> Maybe a
 toMaybe value =
     case value of

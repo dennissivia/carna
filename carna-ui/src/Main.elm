@@ -49,7 +49,9 @@ import Validated exposing (..)
 
 
 type alias Flags =
-    { userLanguage : String }
+    { userLanguage : String
+    , initialBodyIndex : String
+    }
 
 
 {-| Gender, Age Height and Weight should be stored in the model, since it is genric enough
@@ -237,6 +239,9 @@ initialModel flags location =
 
         initialRoute =
             parseLocation location
+
+        loadedBodyIndex =
+            parseBodyIndexJson flags.initialBodyIndex
     in
         { count = 0
         , mdl = Layout.setTabsWidth 1160 mdl
@@ -244,13 +249,29 @@ initialModel flags location =
         , selectedTab = routeToTabId initialRoute
         , locale = toLocale flags.userLanguage
         , screenWidth = Nothing
-        , bodyIndex = initialBodyIndex
+        , bodyIndex = initializedBodyIndex loadedBodyIndex
         , bodyIndexSubmitted = False
         , bodyFatIndex = initialBodyFatIndex
         , bodyFatIndexSubmitted = False
         }
 
 
+{-| Initial body index loaded from localstore
+If the data cannot be loaded we default to initialBodyIndex
+-}
+initializedBodyIndex : Maybe BodyIndexValues -> BodyIndexInput
+initializedBodyIndex maybe =
+    case maybe of
+        Nothing ->
+            initialBodyIndex
+
+        Just record ->
+            fromBodyIndexValues record
+
+
+{-| Initial body index with missing Values (Initial)
+for all fields that are validated and optional.
+-}
 initialBodyIndex : BodyIndexInput
 initialBodyIndex =
     { age = Initial
@@ -289,6 +310,11 @@ initialBodyFatIndex =
 optionalToMaybe : OptionalValidatedInput a -> Maybe a
 optionalToMaybe =
     Validated.toMaybe
+
+
+maybeToValidated : Maybe a -> OptionalValidatedInput a
+maybeToValidated =
+    Validated.fromMaybe
 
 
 toLocale : String -> Locale
@@ -373,12 +399,16 @@ update msg model =
 
                 storeSubmissionCmd =
                     Http.send BodyIndexStored (storeBodyIndexRequest <| toBodyIndexValues model.bodyIndex)
+
+                saveBodyIndexCmd =
+                    saveBodyIndex <| bodyIndexValuesToJson <| toBodyIndexValues model.bodyIndex
             in
                 -- add http request here
                 { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex }
                     ! [ scrollCmd
                       , storeSubmissionCmd
                       , trackBodyIndexSubmit ()
+                      , saveBodyIndexCmd
                       ]
 
         NoOp ->
@@ -476,28 +506,60 @@ update msg model =
             model ! []
 
 
+bodyIndexValuesToJson : BodyIndexValues -> Json.Value
+bodyIndexValuesToJson record =
+    Json.object
+        [ ( "age", JsonExtra.maybe Json.float record.age )
+        , ( "height", JsonExtra.maybe Json.float record.height )
+        , ( "weight", JsonExtra.maybe Json.float record.weight )
+        , ( "waist_circumference", JsonExtra.maybe Json.float record.waist )
+        , ( "hip_size", JsonExtra.maybe Json.float record.hipSize )
+        , ( "gender"
+          , Json.string
+                (if hasGender record.gender Female then
+                    "female"
+                 else
+                    "male"
+                )
+          )
+        ]
+
+
+genderFromString : String -> Gender
+genderFromString str =
+    case str of
+        "female" ->
+            Female
+
+        "male" ->
+            Male
+
+        _ ->
+            GenderOther
+
+
+parseBodyIndexJson : String -> Maybe BodyIndexValues
+parseBodyIndexJson json =
+    let
+        decoder =
+            Decode.map6 BodyIndexValues
+                (Decode.maybe (Decode.field "age" Decode.float))
+                (Decode.maybe (Decode.field "height" Decode.float))
+                (Decode.maybe (Decode.field "weight" Decode.float))
+                (Decode.maybe (Decode.field "waist_circumference" Decode.float))
+                (Decode.maybe (Decode.field "hip_size" Decode.float))
+                (Decode.maybe (Decode.map genderFromString (Decode.field "gender" Decode.string)))
+    in
+        Decode.decodeString decoder (Debug.log "loaded json" json)
+            |> Result.toMaybe
+
+
 storeBodyIndexRequest : BodyIndexValues -> Http.Request String
 storeBodyIndexRequest record =
     let
         encoded =
             Json.object
-                [ ( "body_index_calculation"
-                  , Json.object
-                        [ ( "age", JsonExtra.maybe Json.float record.age )
-                        , ( "height", JsonExtra.maybe Json.float record.height )
-                        , ( "weight", JsonExtra.maybe Json.float record.weight )
-                        , ( "waist_circumference", JsonExtra.maybe Json.float record.waist )
-                        , ( "hip_size", JsonExtra.maybe Json.float record.hipSize )
-                        , ( "gender"
-                          , Json.string
-                                (if hasGender record.gender Female then
-                                    "female"
-                                 else
-                                    "male"
-                                )
-                          )
-                        ]
-                  )
+                [ ( "body_index_calculation", bodyIndexValuesToJson record )
                 ]
     in
         Http.request
@@ -732,6 +794,23 @@ toBodyIndexValues input =
     , hipSize = optionalToMaybe input.hipSize
     , gender = input.gender
     }
+
+
+fromBodyIndexValues : BodyIndexValues -> BodyIndexInput
+fromBodyIndexValues input =
+    let
+        record =
+            { age = maybeToValidated input.age
+            , height = maybeToValidated input.height
+            , weight = maybeToValidated input.weight
+            , waist = maybeToValidated input.waist
+            , hipSize = maybeToValidated input.hipSize
+            , gender = input.gender
+            , result = Nothing
+            , isValid = False
+            }
+    in
+        { record | isValid = validateBodyIndex record, result = calculateBodyIndexResult record }
 
 
 {-| TODO: split classificatin and satisfaction conversion into two functions that are piped together
@@ -1501,6 +1580,12 @@ port trackBodyIndexSubmit : () -> Cmd msg
 
 
 port trackBodyFatSubmit : () -> Cmd msg
+
+
+port saveBodyIndex : Json.Value -> Cmd msg
+
+
+port loadBodyIndex : (Decode.Value -> msg) -> Sub msg
 
 
 main : Program Flags Model Msg
