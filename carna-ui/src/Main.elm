@@ -13,7 +13,7 @@ import Html exposing (programWithFlags, div, text, span, h1, i, Html)
 import Html.Attributes exposing (href, class, style, width)
 import Html.Events exposing (onWithOptions)
 import Svg exposing (Svg)
-import Json.Decode as Decode
+import Json.Decode as JsonDecode
 import Json.Encode as Json
 import Json.Encode.Extra as JsonExtra
 import Material
@@ -54,7 +54,9 @@ type alias Flags =
     }
 
 
-{-| Gender, Age Height and Weight should be stored in the model, since it is genric enough
+{-| Gender, Age Height and Weight could be stored in the model,
+since it is genric enough. However this only make sense for things
+all current and future calculators need.
 -}
 type alias Model =
     { count : Int
@@ -542,15 +544,15 @@ parseBodyIndexJson : String -> Maybe BodyIndexValues
 parseBodyIndexJson json =
     let
         decoder =
-            Decode.map6 BodyIndexValues
-                (Decode.maybe (Decode.field "age" Decode.float))
-                (Decode.maybe (Decode.field "height" Decode.float))
-                (Decode.maybe (Decode.field "weight" Decode.float))
-                (Decode.maybe (Decode.field "waist_circumference" Decode.float))
-                (Decode.maybe (Decode.field "hip_size" Decode.float))
-                (Decode.maybe (Decode.map genderFromString (Decode.field "gender" Decode.string)))
+            JsonDecode.map6 BodyIndexValues
+                (JsonDecode.maybe (JsonDecode.field "age" JsonDecode.float))
+                (JsonDecode.maybe (JsonDecode.field "height" JsonDecode.float))
+                (JsonDecode.maybe (JsonDecode.field "weight" JsonDecode.float))
+                (JsonDecode.maybe (JsonDecode.field "waist_circumference" JsonDecode.float))
+                (JsonDecode.maybe (JsonDecode.field "hip_size" JsonDecode.float))
+                (JsonDecode.maybe (JsonDecode.map genderFromString (JsonDecode.field "gender" JsonDecode.string)))
     in
-        Decode.decodeString decoder (Debug.log "loaded json" json)
+        JsonDecode.decodeString decoder (Debug.log "loaded json" json)
             |> Result.toMaybe
 
 
@@ -1449,7 +1451,7 @@ onLinkClick message =
             , preventDefault = True
             }
     in
-        onWithOptions "click" options (Decode.succeed message)
+        onWithOptions "click" options (JsonDecode.succeed message)
 
 
 {-| parse initial browser location and UrlChange messages
@@ -1585,7 +1587,7 @@ port trackBodyFatSubmit : () -> Cmd msg
 port saveBodyIndex : Json.Value -> Cmd msg
 
 
-port loadBodyIndex : (Decode.Value -> msg) -> Sub msg
+port loadBodyIndex : (JsonDecode.Value -> msg) -> Sub msg
 
 
 main : Program Flags Model Msg

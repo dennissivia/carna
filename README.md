@@ -9,7 +9,7 @@ If you are interested in the Elm frontend just skip directly to the
 ## Technologies used
 ### Frontend
 * Elm
-* Material design lite [Elm mdl](https://debois.github.io/elm-mdl/)
+* Material design lite using [Elm mdl](https://debois.github.io/elm-mdl/)
 * Webpack
 
 ### Backend
