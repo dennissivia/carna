@@ -133,12 +133,16 @@ type alias BodyIndexResultRating =
 -}
 type alias SkinfoldInput =
     { armpit : OptionalValidatedInput Float
-    , subscapular : OptionalValidatedInput Float -- shoulder blade
+    , subscapular :
+        OptionalValidatedInput Float
+        -- shoulder blade
     , chest : OptionalValidatedInput Float
     , triceps : OptionalValidatedInput Float
     , biceps : OptionalValidatedInput Float
     , abdomen : OptionalValidatedInput Float
-    , iliacCrest : OptionalValidatedInput Float -- Hip
+    , iliacCrest :
+        OptionalValidatedInput Float
+        -- Hip
     , thigh : OptionalValidatedInput Float
     , calf : OptionalValidatedInput Float
     }
@@ -967,8 +971,7 @@ view model =
             [ Layout.selectedTab model.selectedTab
             , Layout.onSelectTab SelectTab
             , Layout.fixedHeader
-
-            -- , Layout.fixedTabs
+              -- , Layout.fixedTabs
             , Layout.fixedDrawer |> Material.Options.when (Maybe.map (flip (>) 1024) model.screenWidth |> Maybe.withDefault False)
             ]
             { header =
@@ -1071,8 +1074,7 @@ viewContentCard cardData =
             , Card.subhead [] [ text (Maybe.withDefault "" cardData.subhead) ]
             ]
         , Card.text [ cs "content-card-body-wrap" ] [ (Markdown.toHtml [] cardData.content) ]
-
-        -- , Card.actions [ Card.border, MColor.text MColor.white ] []
+          -- , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
 
 
