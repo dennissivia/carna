@@ -11,7 +11,7 @@
         "danielnarey/elm-toolkit": "4.4.0 <= v < 5.0.0",
         "debois/elm-mdl": "8.1.0 <= v < 9.0.0",
         "elm-community/json-extra": "2.3.0 <= v < 3.0.0",
-        "elm-community/list-extra": "5.0.0 <= v < 6.0.0",
+        "elm-community/list-extra": "5.0.0 <= v < 8.0.0",
         "elm-community/material-icons": "1.1.0 <= v < 2.0.0",
         "elm-community/maybe-extra": "3.0.1 <= v < 4.0.0",
         "elm-community/result-extra": "2.2.0 <= v < 3.0.0",
