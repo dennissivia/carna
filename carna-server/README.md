@@ -1,1 +1,0 @@
-# carna-server

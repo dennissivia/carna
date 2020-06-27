@@ -1,1 +1,3 @@
-cd carna-ui && elm make && rsync -avz --delete dist/ ../docs/ && cd ..
+
+yarn build
+rsync -avz --delete dist/ decoded@m.carna.io:/home/decoded/public_html/www.carna.io/
