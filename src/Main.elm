@@ -50,7 +50,7 @@ import Validated exposing (..)
 
 type alias Flags =
     { userLanguage : String
-    , initialBodyIndex : String
+    , initialBodyIndex : Maybe String
     }
 
 
@@ -247,7 +247,8 @@ initialModel flags location =
             parseLocation location
 
         loadedBodyIndex =
-            parseBodyIndexJson flags.initialBodyIndex
+        flags.initialBodyIndex
+        |> Maybe.andThen parseBodyIndexJson
     in
         { count = 0
         , mdl = Layout.setTabsWidth 1160 mdl
@@ -1042,7 +1043,7 @@ viewWelcomePage model =
             , bmiInfo model.locale
             , calipometrie model.locale
             , caliperMethods model.locale
-            , preferOldPage model.locale
+            , classificationInfo model.locale
             ]
     in
         div []
@@ -1086,7 +1087,18 @@ viewBodyIndexForm model =
         gridStyle =
             [ Grid.size Grid.Phone 4, Grid.size Grid.Tablet 6, Grid.size Grid.Desktop 5 ]
     in
-        [ gridCell gridStyle
+        [
+            gridCell gridStyle
+            [
+                div [ ]
+                [
+                    viewContentCard (bmiInfo model.locale)
+
+                ]
+                ,div [] []
+
+            ]
+            ,gridCell gridStyle
             [ div
                 []
                 [ viewBodyIndexGenderSelect model

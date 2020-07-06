@@ -48,9 +48,9 @@ type Key
     | ContentHeadCaliperMethods
     | ContentSubHeadCaliperMethods
     | ContentBodyCaliperMethods
-    | ContentHeadPreferOldPage
-    | ContentSubHeadPreferOldPage
-    | ContentBodyPreferOldPage
+    | ContentHeadClassificationInfo
+    | ContentSubHeadClassificationInfo
+    | ContentBodyClassificationInfo
     | ContentHeadNews
     | ContentSubHeadNews
     | ContentBodyNews
@@ -290,11 +290,12 @@ knownTranslations key =
             { german = """Der BMI ist eine Maßzahl für die Bewertung des Körpergewichts eines Menschen.
                           Er soll helfen Untergewicht, Idealgewicht und Übergewicht zu erkennen.
                           Der BMI ist allerdings eher ein grober Richtwert, der u.A. nicht die individuelle
-                          Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe berücksichtigt."""
-            , english = """The BMI is derived from the weight and height of an individual.
-                         Based on that, you can estimate if the person is underweight, has normal weight,
-                         is overweight, or obese. However, the BMI does not consider individual factors and should
-                         be considered a rough estimate."""
+                          Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe berücksichtigt.
+                         <u>Formel:</u> Gewicht / (Größe(cm)/100)^2) """
+            , english = """The BMI is caculated from the weight and height of an individual.
+                         It estimates if a person is underweight, has normal weight, is overweight, or obese.
+                         However, the BMI does not consider individual factors and should be considered a rough estimate.<br /><br />
+                         <u>Formula:</u> weight / (height(cm)/100)^2) """
             , french = "translationMissing"
             }
 
@@ -370,26 +371,29 @@ knownTranslations key =
             , french = "translationMissing"
             }
 
-        ContentHeadPreferOldPage ->
-            { german = "Nicht zufrieden mit dieser Seite"
-            , english = "Dont like the new page?"
+        ContentHeadClassificationInfo ->
+            { german = "Bewertung der Metriken"
+            , english = "Classification"
             , french = "translationMissing"
             }
 
-        ContentSubHeadPreferOldPage ->
-            { german = "Das ist sehr schade"
-            , english = "We are sorry to hear that "
+        ContentSubHeadClassificationInfo ->
+            { german = "Wie Carna die Ergebnisse der Berechnung einstuft"
+            , english = "How carna classifies calculation results"
             , french = "translationMissing"
             }
 
-        ContentBodyPreferOldPage ->
-            { german = """Aus diesem Grund haben wir die alten Seite unter [old.carna.io](http://old.carna.io)
-                          noch immer online. Ausserdem würden wir gern wissen, was wir besser machen oder anpassen sollen.
-                          Ein kurzes feedback an suggestions@carna.io würde uns sehr helfen"""
-            , english = """Just in case this would happen we decided to keep the old page around for now.
-                           Visit [old.carna.io](http://old.carna.io) to get to the original experience.
-                           It would be great if you could let us know how we can improve our app, by sending your ideas
-                           to suggestions@carna.io."""
+        ContentBodyClassificationInfo ->
+            { german = """Manche Formeln sind sehr generell und beinhalten keine individuellen Faktoren.
+                          Damit Bewertung so objektiv und gesund wir möglich ist, beziehen wir stets zusätzliche Faktoren wie
+                          Alter, Geschlecht und Größe in die Bewertung der Ergebnisse ein. Somit können wir u.A. realistische
+                          Bewerungen für sehr kleine, junge oder alte Menschen geben."""
+            , english = """Some of the body index calculations use very generic formulas that do not account for individual factors.
+                           One example is the commonly used BMI.
+                           To make sure our recommendation is as good as possible, we are taking additional factors into
+                           consideration when classifying the result of the calculation.
+                           This includes age, gender and height. This is especially important for the results of people of young
+                           and old age."""
             , french = "translationMissing"
             }
 
