@@ -1,51 +1,48 @@
 port module Main exposing (..)
 
-import String
-import Regex
-import Http
-import Task
-import String.Extra as StringExtra
-import Color
-import Markdown
-import Window
-import Dom.Scroll
-import Html exposing (programWithFlags, div, text, span, h1, i, Html)
-import Html.Attributes exposing (href, class, style, width)
-import Html.Events exposing (onWithOptions)
-import Svg exposing (Svg)
-import Json.Decode as JsonDecode
-import Json.Encode as Json
-import Json.Encode.Extra as JsonExtra
-import Material
-import Material.Table as Table
-import Material.Elevation as Elevation
-import Material.Card as Card
-import Material.Color as MColor
-import Material.Toggles as Toggles
-import Material.Options exposing (Style, css, cs, id, nop)
-import Material.Grid as Grid exposing (Device(..))
-import Material.Textfield as Textfield
-
-
 -- import Material.Select as Select
 
-import Material.Layout as Layout
-import Material.Scheme
-import Material.Options as Options
-import Material.Button as Button
-import Material.Options exposing (css)
-import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
-import Material.Icons.Alert exposing (error_outline)
-import Navigation exposing (Location)
-import UrlParser exposing (Parser, QueryParser, top, (<?>), string, stringParam)
 import BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhca, caliper7foldsJp, caliper9foldsParillo)
 import BodyFatClassification exposing (..)
 import BodyIndexCalculation exposing (..)
-import BodyIndexClassification exposing (classifyBMI, classifyBMIWithAge, classifyBAI, classifyBrocaIndex, classifyPonderalIndex, classifyWaistHipRatio, classifySurfaceArea)
-import WelcomeContent exposing (..)
+import BodyIndexClassification exposing (classifyBAI, classifyBMI, classifyBMIWithAge, classifyBrocaIndex, classifyPonderalIndex, classifySurfaceArea, classifyWaistHipRatio)
+import Color
+import Dom.Scroll
+import Html exposing (Html, div, h1, i, programWithFlags, span, text)
+import Html.Attributes exposing (class, href, style, width)
+import Html.Events exposing (onWithOptions)
+import Http
 import I18n exposing (Locale(..))
-import Utils exposing (Gender(..), Classification(..), Age)
+import Json.Decode as JsonDecode
+import Json.Encode as Json
+import Json.Encode.Extra as JsonExtra
+import Markdown
+import Material
+import Material.Button as Button
+import Material.Card as Card
+import Material.Color as MColor
+import Material.Elevation as Elevation
+import Material.Grid as Grid exposing (Device(..))
+import Material.Icons.Alert exposing (error_outline)
+import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
+import Material.Layout as Layout
+import Material.Options as Options exposing (Style, cs, css, id, nop)
+import Material.Options
+import Material.Scheme
+import Material.Table as Table
+import Material.Textfield as Textfield
+import Material.Toggles as Toggles
+import Navigation exposing (Location)
+import Regex
+import String
+import String.Extra as StringExtra
+import Svg exposing (Svg)
+import Task
+import UrlParser exposing ((<?>), Parser, QueryParser, string, stringParam, top)
+import Utils exposing (Age, Classification(..), Gender(..))
 import Validated exposing (..)
+import WelcomeContent exposing (..)
+import Window
 
 
 type alias Flags =
@@ -234,7 +231,7 @@ init flags location =
         getWindowWidth =
             Task.perform ScreenWidthChanged Window.size
     in
-        ( initialModel flags location, getWindowWidth )
+    ( initialModel flags location, getWindowWidth )
 
 
 initialModel : Flags -> Location -> Model
@@ -247,20 +244,20 @@ initialModel flags location =
             parseLocation location
 
         loadedBodyIndex =
-        flags.initialBodyIndex
-        |> Maybe.andThen parseBodyIndexJson
+            flags.initialBodyIndex
+                |> Maybe.andThen parseBodyIndexJson
     in
-        { count = 0
-        , mdl = Layout.setTabsWidth 1160 mdl
-        , route = initialRoute
-        , selectedTab = routeToTabId initialRoute
-        , locale = toLocale flags.userLanguage
-        , screenWidth = Nothing
-        , bodyIndex = initializedBodyIndex loadedBodyIndex
-        , bodyIndexSubmitted = False
-        , bodyFatIndex = initialBodyFatIndex
-        , bodyFatIndexSubmitted = False
-        }
+    { count = 0
+    , mdl = Layout.setTabsWidth 1160 mdl
+    , route = initialRoute
+    , selectedTab = routeToTabId initialRoute
+    , locale = toLocale flags.userLanguage
+    , screenWidth = Nothing
+    , bodyIndex = initializedBodyIndex loadedBodyIndex
+    , bodyIndexSubmitted = False
+    , bodyFatIndex = initialBodyFatIndex
+    , bodyFatIndexSubmitted = False
+    }
 
 
 {-| Initial body index loaded from localstore
@@ -330,14 +327,17 @@ toLocale userLanguage =
         locale =
             if Regex.contains (Regex.regex "de") userLanguage then
                 DE
+
             else if Regex.contains (Regex.regex "en") userLanguage then
                 EN
+
             else if Regex.contains (Regex.regex "fr") userLanguage then
                 FR
+
             else
                 DE
     in
-        Debug.log ("converting " ++ userLanguage ++ " to ") locale
+    Debug.log ("converting " ++ userLanguage ++ " to ") locale
 
 
 toUrl : Int -> String
@@ -405,18 +405,18 @@ update msg model =
                     Task.attempt (always NoOp) (Dom.Scroll.toBottom "elm-mdl-layout-main")
 
                 -- storeSubmissionCmd =
-                    -- Http.send BodyIndexStored (storeBodyIndexRequest <| toBodyIndexValues model.bodyIndex)
-
+                -- Http.send BodyIndexStored (storeBodyIndexRequest <| toBodyIndexValues model.bodyIndex)
                 saveBodyIndexCmd =
                     saveBodyIndex <| bodyIndexValuesToJson <| toBodyIndexValues model.bodyIndex
             in
-                -- add http request here
-                { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex }
-                    ! [ scrollCmd
-                    --   , storeSubmissionCmd
-                      , trackBodyIndexSubmit ()
-                      , saveBodyIndexCmd
-                      ]
+            -- add http request here
+            { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex }
+                ! [ scrollCmd
+
+                  --   , storeSubmissionCmd
+                  , trackBodyIndexSubmit ()
+                  , saveBodyIndexCmd
+                  ]
 
         NoOp ->
             model ! []
@@ -438,25 +438,25 @@ update msg model =
                 storeSubmissionCmd =
                     Http.send BodyFatStored (storeBodyFatRequest <| model.bodyFatIndex)
             in
-                { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex }
-                    ! [ scrollCmd
-                      , storeSubmissionCmd
-                      , trackBodyFatSubmit ()
-                      ]
+            { model | bodyFatIndexSubmitted = True, bodyFatIndex = newBodyFatIndex }
+                ! [ scrollCmd
+                  , storeSubmissionCmd
+                  , trackBodyFatSubmit ()
+                  ]
 
         BodyIndexChange bodyIndexMessage ->
             let
                 newBodyIndex =
                     updateBodyIndex model.bodyIndex bodyIndexMessage
             in
-                { model | bodyIndex = newBodyIndex } ! []
+            { model | bodyIndex = newBodyIndex } ! []
 
         BodyFatIndexChange bodyFatIndexMessage ->
             let
                 newBodyFatIndex =
                     updateBodyFatIndex model.bodyFatIndex bodyFatIndexMessage
             in
-                { model | bodyFatIndex = newBodyFatIndex } ! []
+            { model | bodyFatIndex = newBodyFatIndex } ! []
 
         Mdl msg_ ->
             Material.update Mdl msg_ model
@@ -474,7 +474,7 @@ update msg model =
                 newUrlCmd =
                     changeUrl newModel
             in
-                Debug.log "SelectTab received " newModel ! [ newUrlCmd ]
+            Debug.log "SelectTab received " newModel ! [ newUrlCmd ]
 
         -- FIXME what do we have to do here?
         -- Handle
@@ -486,7 +486,7 @@ update msg model =
                 newPath =
                     routeToPath newModel.route
             in
-                Debug.log "urlchange" <| newModel ! [ trackHashPage newPath ]
+            Debug.log "urlchange" <| newModel ! [ trackHashPage newPath ]
 
         --  handle link clicks within the app
         -- FIXME what do we have to do here?
@@ -501,7 +501,7 @@ update msg model =
                 newUrlCmd =
                     Debug.log "change url cmd" <| changeUrl newModel
             in
-                Debug.log "NavigateTo recieved " newModel ! [ newUrlCmd ]
+            Debug.log "NavigateTo recieved " newModel ! [ newUrlCmd ]
 
         ScreenWidthChanged newSize ->
             { model | screenWidth = Just newSize.width } ! []
@@ -525,6 +525,7 @@ bodyIndexValuesToJson record =
           , Json.string
                 (if hasGender record.gender Female then
                     "female"
+
                  else
                     "male"
                 )
@@ -557,8 +558,8 @@ parseBodyIndexJson json =
                 (JsonDecode.maybe (JsonDecode.field "hip_size" JsonDecode.float))
                 (JsonDecode.maybe (JsonDecode.map genderFromString (JsonDecode.field "gender" JsonDecode.string)))
     in
-        JsonDecode.decodeString decoder (Debug.log "loaded json" json)
-            |> Result.toMaybe
+    JsonDecode.decodeString decoder (Debug.log "loaded json" json)
+        |> Result.toMaybe
 
 
 storeBodyIndexRequest : BodyIndexValues -> Http.Request String
@@ -569,15 +570,15 @@ storeBodyIndexRequest record =
                 [ ( "body_index_calculation", bodyIndexValuesToJson record )
                 ]
     in
-        Http.request
-            { method = "POST"
-            , url = "https://www.carna.io/old/body_index_calculations/"
-            , headers = []
-            , body = Http.jsonBody encoded
-            , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
-            , timeout = Nothing
-            , withCredentials = False
-            }
+    Http.request
+        { method = "POST"
+        , url = "https://www.carna.io/old/body_index_calculations/"
+        , headers = []
+        , body = Http.jsonBody encoded
+        , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 {-| NOTE We could implement an ad hoc exp. backoff / retry api
@@ -601,6 +602,7 @@ storeBodyFatRequest record =
                           , Json.string
                                 (if hasGender record.gender Female then
                                     "true"
+
                                  else
                                     "false"
                                 )
@@ -618,15 +620,15 @@ storeBodyFatRequest record =
                   )
                 ]
     in
-        Http.request
-            { method = "POST"
-            , url = "http://www.carna.io/old/body_fat_calculations/"
-            , headers = []
-            , body = Http.jsonBody encoded
-            , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
-            , timeout = Nothing
-            , withCredentials = False
-            }
+    Http.request
+        { method = "POST"
+        , url = "http://www.carna.io/old/body_fat_calculations/"
+        , headers = []
+        , body = Http.jsonBody encoded
+        , expect = Http.expectStringResponse (\resp -> Ok resp.status.message)
+        , timeout = Nothing
+        , withCredentials = False
+        }
 
 
 {-| reduce model with new location.
@@ -641,7 +643,7 @@ updateCurrentRoute model location =
         newTab =
             routeToTabId newRoute
     in
-        { model | route = newRoute, selectedTab = newTab }
+    { model | route = newRoute, selectedTab = newTab }
 
 
 updateBodyIndex : BodyIndexInput -> BodyIndexMsg -> BodyIndexInput
@@ -650,24 +652,24 @@ updateBodyIndex bodyIndex msg =
         newBodyIndex =
             case msg of
                 SetAge newAge ->
-                    { bodyIndex | age = (updateInputValue validateAge newAge) }
+                    { bodyIndex | age = updateInputValue validateAge newAge }
 
                 SetHeight newHeight ->
-                    { bodyIndex | height = (updateInputValue validateHeight newHeight) }
+                    { bodyIndex | height = updateInputValue validateHeight newHeight }
 
                 SetWeight newWeight ->
-                    { bodyIndex | weight = (updateInputValue validateWeight newWeight) }
+                    { bodyIndex | weight = updateInputValue validateWeight newWeight }
 
                 SetWaist newWaist ->
-                    { bodyIndex | waist = (updateInputValue validateWaist newWaist) }
+                    { bodyIndex | waist = updateInputValue validateWaist newWaist }
 
                 SetHip newHip ->
-                    { bodyIndex | hipSize = (updateInputValue validateHip newHip) }
+                    { bodyIndex | hipSize = updateInputValue validateHip newHip }
 
                 SetGender gender ->
                     { bodyIndex | gender = Just gender }
     in
-        { newBodyIndex | isValid = validateBodyIndex newBodyIndex }
+    { newBodyIndex | isValid = validateBodyIndex newBodyIndex }
 
 
 updateBodyFatIndex : BodyFatIndex -> BodyFatIndexMsg -> BodyFatIndex
@@ -676,13 +678,13 @@ updateBodyFatIndex bodyFatIndex msg =
         newBodyFatIndex =
             case msg of
                 SetBfiAge newAge ->
-                    { bodyFatIndex | age = (updateInputValue validateAge newAge) }
+                    { bodyFatIndex | age = updateInputValue validateAge newAge }
 
                 SetBfiHeight height ->
-                    { bodyFatIndex | height = (updateInputValue validateHeight height) }
+                    { bodyFatIndex | height = updateInputValue validateHeight height }
 
                 SetBfiWeight weight ->
-                    { bodyFatIndex | weight = (updateInputValue validateAge weight) }
+                    { bodyFatIndex | weight = updateInputValue validateAge weight }
 
                 SetBfiGender gender ->
                     { bodyFatIndex | gender = Just gender }
@@ -690,7 +692,7 @@ updateBodyFatIndex bodyFatIndex msg =
                 SetBfiSkinfold skinfoldMsg ->
                     { bodyFatIndex | skinFolds = updateSkinFolds bodyFatIndex.skinFolds skinfoldMsg }
     in
-        { newBodyFatIndex | isValid = validateBodyFatIndex newBodyFatIndex }
+    { newBodyFatIndex | isValid = validateBodyFatIndex newBodyFatIndex }
 
 
 updateSkinFolds : SkinfoldInput -> SkinfoldMsg -> SkinfoldInput
@@ -758,17 +760,17 @@ calculateBodyFatIndexResult bfi =
         gender =
             Maybe.withDefault GenderOther bfi.gender
     in
-        case bfi.isValid of
-            True ->
-                Just
-                    { bodyFat3folds = caliper3foldsJp skinfolds gender age
-                    , bodyFat4folds = caliper4foldsNhca skinfolds age
-                    , bodyFat7folds = caliper7foldsJp skinfolds gender age
-                    , bodyFat9folds = caliper9foldsParillo skinfolds weight
-                    }
+    case bfi.isValid of
+        True ->
+            Just
+                { bodyFat3folds = caliper3foldsJp skinfolds gender age
+                , bodyFat4folds = caliper4foldsNhca skinfolds age
+                , bodyFat7folds = caliper7foldsJp skinfolds gender age
+                , bodyFat9folds = caliper9foldsParillo skinfolds weight
+                }
 
-            False ->
-                Nothing
+        False ->
+            Nothing
 
 
 calculateBodyIndexResult : BodyIndexInput -> Maybe BodyIndexResult
@@ -777,19 +779,19 @@ calculateBodyIndexResult bodyIndexInput =
         bodyIndexValues =
             toBodyIndexValues bodyIndexInput
     in
-        case bodyIndexInput.isValid of
-            True ->
-                Just
-                    { bmi = calculateBMI bodyIndexValues.weight bodyIndexValues.height
-                    , bai = calculateBAI bodyIndexValues.hipSize bodyIndexValues.height
-                    , brocaIndex = calculateBrocaIndex bodyIndexValues.gender bodyIndexValues.height
-                    , ponderalIndex = calculatePonderalIndex bodyIndexValues.weight bodyIndexValues.height
-                    , surfaceArea = calculateSkinSurfaceArea bodyIndexValues.weight bodyIndexValues.height
-                    , whRatio = calculateWaistHipRatio bodyIndexValues.waist bodyIndexValues.hipSize
-                    }
+    case bodyIndexInput.isValid of
+        True ->
+            Just
+                { bmi = calculateBMI bodyIndexValues.weight bodyIndexValues.height
+                , bai = calculateBAI bodyIndexValues.hipSize bodyIndexValues.height
+                , brocaIndex = calculateBrocaIndex bodyIndexValues.gender bodyIndexValues.height
+                , ponderalIndex = calculatePonderalIndex bodyIndexValues.weight bodyIndexValues.height
+                , surfaceArea = calculateSkinSurfaceArea bodyIndexValues.weight bodyIndexValues.height
+                , whRatio = calculateWaistHipRatio bodyIndexValues.waist bodyIndexValues.hipSize
+                }
 
-            False ->
-                Nothing
+        False ->
+            Nothing
 
 
 toBodyIndexValues : BodyIndexInput -> BodyIndexValues
@@ -817,7 +819,7 @@ fromBodyIndexValues input =
             , isValid = False
             }
     in
-        { record | isValid = validateBodyIndex record, result = calculateBodyIndexResult record }
+    { record | isValid = validateBodyIndex record, result = calculateBodyIndexResult record }
 
 
 {-| TODO: split classificatin and satisfaction conversion into two functions that are piped together
@@ -836,13 +838,13 @@ classifyBodyIndex bodyIndexResult age maybeGender =
                 Just age_ ->
                     classifyBMIWithAge bodyIndexResult.bmi age_
     in
-        { bmi = classificationToSatisfaction <| bmiClassification
-        , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age gender)
-        , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
-        , ponderalIndex = classificationToSatisfaction <| Just (classifyPonderalIndex bodyIndexResult.ponderalIndex)
-        , surfaceArea = classificationToSatisfaction <| classifySurfaceArea bodyIndexResult.surfaceArea age gender
-        , whRatio = classificationToSatisfaction <| Just (classifyWaistHipRatio bodyIndexResult.whRatio gender)
-        }
+    { bmi = classificationToSatisfaction <| bmiClassification
+    , bai = classificationToSatisfaction <| Just (classifyBAI bodyIndexResult.bai age gender)
+    , brocaIndex = classificationToSatisfaction <| Just (classifyBrocaIndex bodyIndexResult.brocaIndex)
+    , ponderalIndex = classificationToSatisfaction <| Just (classifyPonderalIndex bodyIndexResult.ponderalIndex)
+    , surfaceArea = classificationToSatisfaction <| classifySurfaceArea bodyIndexResult.surfaceArea age gender
+    , whRatio = classificationToSatisfaction <| Just (classifyWaistHipRatio bodyIndexResult.whRatio gender)
+    }
 
 
 classificationToSatisfaction : Maybe Classification -> BodyIndexSatisfaction
@@ -935,9 +937,11 @@ validateChainFloat val =
 validateRange : Float -> Float -> Float -> Result String Float
 validateRange lower upper val =
     if val < lower then
-        Err <| "should be between " ++ (toString lower) ++ " and " ++ (toString upper)
+        Err <| "should be between " ++ toString lower ++ " and " ++ toString upper
+
     else if val > upper then
-        Err <| "should be between " ++ (toString lower) ++ " and " ++ (toString upper)
+        Err <| "should be between " ++ toString lower ++ " and " ++ toString upper
+
     else
         Ok val
 
@@ -960,6 +964,7 @@ validatePresence : String -> Result String String
 validatePresence str =
     if not (StringExtra.isBlank str) then
         Ok str
+
     else
         Err <| "should not be empty"
 
@@ -1033,6 +1038,7 @@ gridCell styling =
 
   - FIXME How can we configure grid cell size per card/content?
   - FIXME Do we need a pair of (card, grid-columns(Num))
+
 -}
 viewWelcomePage : Model -> Html Msg
 viewWelcomePage model =
@@ -1046,10 +1052,10 @@ viewWelcomePage model =
             , classificationInfo model.locale
             ]
     in
-        div []
-            [ List.map (\card -> viewContentCard card) cards
-                |> viewContentRow
-            ]
+    div []
+        [ List.map (\card -> viewContentCard card) cards
+            |> viewContentRow
+        ]
 
 
 viewContentRow : List (Html Msg) -> Html Msg
@@ -1061,8 +1067,8 @@ viewContentRow cards =
         gridStyleMediumCell =
             [ Grid.size Phone 4, Grid.size Tablet 8, Grid.size Desktop 8 ]
     in
-        List.map (\card -> gridCell gridStyleSmallCell [ div [] [ card ] ]) cards
-            |> Grid.grid []
+    List.map (\card -> gridCell gridStyleSmallCell [ div [] [ card ] ]) cards
+        |> Grid.grid []
 
 
 viewContentCard : CardContent -> Html Msg
@@ -1075,7 +1081,7 @@ viewContentCard cardData =
             [ Card.head [] [ text cardData.head ]
             , Card.subhead [] [ text (Maybe.withDefault "" cardData.subhead) ]
             ]
-        , Card.text [ cs "content-card-body-wrap" ] [ (Markdown.toHtml [] cardData.content) ]
+        , Card.text [ cs "content-card-body-wrap" ] [ Markdown.toHtml [] cardData.content ]
 
         -- , Card.actions [ Card.border, MColor.text MColor.white ] []
         ]
@@ -1087,48 +1093,44 @@ viewBodyIndexForm model =
         gridStyle =
             [ Grid.size Grid.Phone 4, Grid.size Grid.Tablet 6, Grid.size Grid.Desktop 5 ]
     in
-        [
-            gridCell gridStyle
-            [
-                div [ ]
-                [
-                    viewContentCard (bmiInfo model.locale)
-
-                ]
-                ,div [] []
-
+    [ gridCell gridStyle
+        [ div []
+            [ viewContentCard (bmiInfo model.locale)
             ]
-            ,gridCell gridStyle
-            [ div
-                []
-                [ viewBodyIndexGenderSelect model
-                , textField model.mdl 0 (I18n.t model.locale I18n.Age) (model.bodyIndex.age) (BodyIndexChange << SetAge)
-                , textField model.mdl 1 (I18n.t model.locale I18n.Height) (model.bodyIndex.height) (BodyIndexChange << SetHeight)
-                , textField model.mdl 2 (I18n.t model.locale I18n.Weight) (model.bodyIndex.weight) (BodyIndexChange << SetWeight)
-                , textField model.mdl 3 (I18n.t model.locale I18n.Waist) (model.bodyIndex.waist) (BodyIndexChange << SetWaist)
-                , textField model.mdl 4 (I18n.t model.locale I18n.Hip) (model.bodyIndex.hipSize) (BodyIndexChange << SetHip)
-                , Button.render Mdl
-                    [ 5 ]
-                    model.mdl
-                    [ Button.raised
-                    , Button.colored
-                    , Button.ripple
-                    , Button.disabled |> Material.Options.when (not model.bodyIndex.isValid)
-                    , Options.onClick BodyIndexSubmit
-                    ]
-                    [ text (I18n.t model.locale I18n.CalculateBodyIndex) ]
+        , div [] []
+        ]
+    , gridCell gridStyle
+        [ div
+            []
+            [ viewBodyIndexGenderSelect model
+            , textField model.mdl 0 (I18n.t model.locale I18n.Age) model.bodyIndex.age (BodyIndexChange << SetAge)
+            , textField model.mdl 1 (I18n.t model.locale I18n.Height) model.bodyIndex.height (BodyIndexChange << SetHeight)
+            , textField model.mdl 2 (I18n.t model.locale I18n.Weight) model.bodyIndex.weight (BodyIndexChange << SetWeight)
+            , textField model.mdl 3 (I18n.t model.locale I18n.Waist) model.bodyIndex.waist (BodyIndexChange << SetWaist)
+            , textField model.mdl 4 (I18n.t model.locale I18n.Hip) model.bodyIndex.hipSize (BodyIndexChange << SetHip)
+            , Button.render Mdl
+                [ 5 ]
+                model.mdl
+                [ Button.raised
+                , Button.colored
+                , Button.ripple
+                , Button.disabled |> Material.Options.when (not model.bodyIndex.isValid)
+                , Options.onClick BodyIndexSubmit
                 ]
-            ]
-        , gridCell gridStyle
-            [ div []
-                [ if model.bodyIndexSubmitted then
-                    div [] [ viewBodyIndexResultCard model.bodyIndex model.locale ]
-                  else
-                    div [] []
-                ]
+                [ text (I18n.t model.locale I18n.CalculateBodyIndex) ]
             ]
         ]
-            |> Grid.grid []
+    , gridCell gridStyle
+        [ div []
+            [ if model.bodyIndexSubmitted then
+                div [] [ viewBodyIndexResultCard model.bodyIndex model.locale ]
+
+              else
+                div [] []
+            ]
+        ]
+    ]
+        |> Grid.grid []
 
 
 viewResultCard : Html Msg -> Locale -> Html Msg
@@ -1154,10 +1156,11 @@ viewBodyIndexResultCard bodyIndex locale =
         content =
             if bodyIndex.isValid then
                 viewBodyIndexResulTable bodyIndex locale
+
             else
                 div [ class "invalid-result" ] [ text (I18n.t locale I18n.InvalidResultContent) ]
     in
-        viewResultCard content locale
+    viewResultCard content locale
 
 
 viewBodyFatIndexResultCard : BodyFatIndex -> Locale -> Html Msg
@@ -1166,10 +1169,11 @@ viewBodyFatIndexResultCard bodyFatIndex locale =
         content =
             if bodyFatIndex.isValid then
                 viewBodyFatIndexResultTable bodyFatIndex locale
+
             else
                 div [ class "invalid-result" ] [ text (I18n.t locale I18n.InvalidResultContent) ]
     in
-        viewResultCard content locale
+    viewResultCard content locale
 
 
 viewGenderSelect : Model -> String -> Maybe Gender -> (Gender -> Msg) -> Html Msg
@@ -1248,14 +1252,14 @@ viewBodyIndexResulTable bodyIndex locale =
                 t_ =
                     I18n.t locale
             in
-                viewResultTable locale
-                    [ viewResultTableRow "BMI WHO" (toString result.bmi) bodyIndexRating.bmi
-                    , viewResultTableRow "BAI" (toString result.bai) bodyIndexRating.bai
-                    , viewResultTableRow "Broca Index" (toString result.brocaIndex) bodyIndexRating.brocaIndex
-                    , viewResultTableRow "Ponderal Index" (toString result.ponderalIndex) bodyIndexRating.ponderalIndex
-                    , viewResultTableRow "BSA" (toString result.surfaceArea) bodyIndexRating.surfaceArea
-                    , viewResultTableRow "Waist-Hip ratio" (toString result.whRatio) bodyIndexRating.whRatio
-                    ]
+            viewResultTable locale
+                [ viewResultTableRow "BMI WHO" (toString result.bmi) bodyIndexRating.bmi
+                , viewResultTableRow "BAI" (toString result.bai) bodyIndexRating.bai
+                , viewResultTableRow "Broca Index" (toString result.brocaIndex) bodyIndexRating.brocaIndex
+                , viewResultTableRow "Ponderal Index" (toString result.ponderalIndex) bodyIndexRating.ponderalIndex
+                , viewResultTableRow "BSA" (toString result.surfaceArea) bodyIndexRating.surfaceArea
+                , viewResultTableRow "Waist-Hip ratio" (toString result.whRatio) bodyIndexRating.whRatio
+                ]
 
 
 viewBodyFatIndexResultTable : BodyFatIndex -> Locale -> Html Msg
@@ -1275,12 +1279,12 @@ viewBodyFatIndexResultTable bodyFatIndex locale =
                 t_ =
                     I18n.t locale
             in
-                viewResultTable locale
-                    [ viewResultTableRow (t_ I18n.BodyFatMethod3Folds) (viewBodyFatValue result.bodyFat3folds) classification.threeFolds
-                    , viewResultTableRow (t_ I18n.BodyFatMethod4Folds) (viewBodyFatValue result.bodyFat4folds) classification.fourFolds
-                    , viewResultTableRow (t_ I18n.BodyFatMethod7Folds) (viewBodyFatValue result.bodyFat7folds) classification.sevenFolds
-                    , viewResultTableRow (t_ I18n.BodyFatMethod9Folds) (viewBodyFatValue result.bodyFat9folds) classification.nineFolds
-                    ]
+            viewResultTable locale
+                [ viewResultTableRow (t_ I18n.BodyFatMethod3Folds) (viewBodyFatValue result.bodyFat3folds) classification.threeFolds
+                , viewResultTableRow (t_ I18n.BodyFatMethod4Folds) (viewBodyFatValue result.bodyFat4folds) classification.fourFolds
+                , viewResultTableRow (t_ I18n.BodyFatMethod7Folds) (viewBodyFatValue result.bodyFat7folds) classification.sevenFolds
+                , viewResultTableRow (t_ I18n.BodyFatMethod9Folds) (viewBodyFatValue result.bodyFat9folds) classification.nineFolds
+                ]
 
 
 {-| TODO: use Classification module instead
@@ -1291,11 +1295,11 @@ classifyBodyFatIndex bfi age maybeGender =
         gender =
             Maybe.withDefault GenderOther maybeGender
     in
-        { threeFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat3folds
-        , fourFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat4folds
-        , sevenFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat7folds
-        , nineFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat9folds
-        }
+    { threeFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat3folds
+    , fourFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat4folds
+    , sevenFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat7folds
+    , nineFolds = classificationToSatisfaction <| classifyBodyFat gender age bfi.bodyFat9folds
+    }
 
 
 satisfactionIcon : BodyIndexSatisfaction -> Html Msg
@@ -1304,36 +1308,36 @@ satisfactionIcon satisfaction =
         svgStyle =
             [ width 48 ]
     in
-        case satisfaction of
-            VerySatisfied ->
-                Svg.svg svgStyle [ sentiment_very_satisfied Color.green 24 ]
+    case satisfaction of
+        VerySatisfied ->
+            Svg.svg svgStyle [ sentiment_very_satisfied Color.green 24 ]
 
-            Satisfied ->
-                Svg.svg svgStyle [ sentiment_satisfied Color.green 24 ]
+        Satisfied ->
+            Svg.svg svgStyle [ sentiment_satisfied Color.green 24 ]
 
-            Neutral ->
-                Svg.svg svgStyle [ sentiment_neutral Color.black 24 ]
+        Neutral ->
+            Svg.svg svgStyle [ sentiment_neutral Color.black 24 ]
 
-            Dissatisfied ->
-                Svg.svg svgStyle [ sentiment_dissatisfied Color.red 24 ]
+        Dissatisfied ->
+            Svg.svg svgStyle [ sentiment_dissatisfied Color.red 24 ]
 
-            VeryDissatisfied ->
-                Svg.svg svgStyle [ sentiment_very_dissatisfied Color.red 24 ]
+        VeryDissatisfied ->
+            Svg.svg svgStyle [ sentiment_very_dissatisfied Color.red 24 ]
 
-            SatisfactionUnknown ->
-                Svg.svg svgStyle [ error_outline Color.blue 24 ]
+        SatisfactionUnknown ->
+            Svg.svg svgStyle [ error_outline Color.blue 24 ]
 
 
 {-|
 
     let
         options =
-            ([ "3-Fold Jackson Pollack"
-             , "4-Fold NHCA"
-             , "7-Fold Jackson Pollack"
-             , "9-Fold Parillo"
-             , "All Methods"
-             ]
+            [ "3-Fold Jackson Pollack"
+            , "4-Fold NHCA"
+            , "7-Fold Jackson Pollack"
+            , "9-Fold Parillo"
+            , "All Methods"
+            ]
                 |> List.map
                     (\string ->
                         Select.item
@@ -1341,16 +1345,16 @@ satisfactionIcon satisfaction =
                             [ text string
                             ]
                     )
-            )
     in
-        Select.render Mdl
-            [ 0 ]
-            model.mdl
-            [ Select.label "Caliper Method"
-            , Select.floatingLabel
-            , Select.ripple
-            , Select.value model.value
-            ]
+    Select.render Mdl
+        [ 0 ]
+        model.mdl
+        [ Select.label "Caliper Method"
+        , Select.floatingLabel
+        , Select.ripple
+        , Select.value model.value
+        ]
+
 -}
 viewBodyFatIndexMethodSelect : Model -> Html Msg
 viewBodyFatIndexMethodSelect model =
@@ -1375,47 +1379,48 @@ viewBodyFatIndexForm model =
         t_ =
             I18n.t model.locale
     in
-        div []
-            [ [ gridCell gridStyle
-                    [ viewBodyFatIndexGenderSelect model
-                    , viewBodyFatIndexMethodSelect model
-                    , textField model.mdl 0 (t_ I18n.Age) (bodyFatIndex.age) (BodyFatIndexChange << SetBfiAge)
-                    , textField model.mdl 1 (t_ I18n.Height) (bodyFatIndex.height) (BodyFatIndexChange << SetBfiHeight)
-                    , textField model.mdl 2 (t_ I18n.Weight) (bodyFatIndex.weight) (BodyFatIndexChange << SetBfiWeight)
-                    , textField model.mdl 3 (t_ I18n.Chest) (skinFolds.chest) (skinfoldMsgFunc << SetChest)
-                    , textField model.mdl 4 (t_ I18n.Subscapular) (skinFolds.subscapular) (skinfoldMsgFunc << SetSubscapular)
-                    , textField model.mdl 5 (t_ I18n.Armpit) (skinFolds.armpit) (skinfoldMsgFunc << SetArmpit)
+    div []
+        [ [ gridCell gridStyle
+                [ viewBodyFatIndexGenderSelect model
+                , viewBodyFatIndexMethodSelect model
+                , textField model.mdl 0 (t_ I18n.Age) bodyFatIndex.age (BodyFatIndexChange << SetBfiAge)
+                , textField model.mdl 1 (t_ I18n.Height) bodyFatIndex.height (BodyFatIndexChange << SetBfiHeight)
+                , textField model.mdl 2 (t_ I18n.Weight) bodyFatIndex.weight (BodyFatIndexChange << SetBfiWeight)
+                , textField model.mdl 3 (t_ I18n.Chest) skinFolds.chest (skinfoldMsgFunc << SetChest)
+                , textField model.mdl 4 (t_ I18n.Subscapular) skinFolds.subscapular (skinfoldMsgFunc << SetSubscapular)
+                , textField model.mdl 5 (t_ I18n.Armpit) skinFolds.armpit (skinfoldMsgFunc << SetArmpit)
+                ]
+          , gridCell gridStyle
+                [ div [] [ span [] [] ]
+                , textField model.mdl 6 (t_ I18n.Biceps) skinFolds.biceps (skinfoldMsgFunc << SetBiceps)
+                , textField model.mdl 7 (t_ I18n.Triceps) skinFolds.triceps (skinfoldMsgFunc << SetTriceps)
+                , textField model.mdl 8 (t_ I18n.Abdomen) skinFolds.abdomen (skinfoldMsgFunc << SetAbdomen)
+                , textField model.mdl 9 (t_ I18n.IliacCrest) skinFolds.iliacCrest (skinfoldMsgFunc << SetIliacCrest)
+                , textField model.mdl 10 (t_ I18n.Thigh) skinFolds.thigh (skinfoldMsgFunc << SetThigh)
+                , textField model.mdl 11 (t_ I18n.Calf) skinFolds.calf (skinfoldMsgFunc << SetCalf)
+                , Button.render Mdl
+                    [ 5 ]
+                    model.mdl
+                    [ Button.raised
+                    , Button.colored
+                    , Button.ripple
+                    , Button.disabled |> Material.Options.when (not bodyFatIndex.isValid)
+                    , Options.onClick BodyFatIndexSubmit
                     ]
-              , gridCell gridStyle
-                    [ div [] [ span [] [] ]
-                    , textField model.mdl 6 (t_ I18n.Biceps) (skinFolds.biceps) (skinfoldMsgFunc << SetBiceps)
-                    , textField model.mdl 7 (t_ I18n.Triceps) (skinFolds.triceps) (skinfoldMsgFunc << SetTriceps)
-                    , textField model.mdl 8 (t_ I18n.Abdomen) (skinFolds.abdomen) (skinfoldMsgFunc << SetAbdomen)
-                    , textField model.mdl 9 (t_ I18n.IliacCrest) (skinFolds.iliacCrest) (skinfoldMsgFunc << SetIliacCrest)
-                    , textField model.mdl 10 (t_ I18n.Thigh) (skinFolds.thigh) (skinfoldMsgFunc << SetThigh)
-                    , textField model.mdl 11 (t_ I18n.Calf) (skinFolds.calf) (skinfoldMsgFunc << SetCalf)
-                    , Button.render Mdl
-                        [ 5 ]
-                        model.mdl
-                        [ Button.raised
-                        , Button.colored
-                        , Button.ripple
-                        , Button.disabled |> Material.Options.when (not bodyFatIndex.isValid)
-                        , Options.onClick BodyFatIndexSubmit
-                        ]
-                        [ text "Calculate body fat" ]
+                    [ text "Calculate body fat" ]
+                ]
+          , gridCell gridStyle
+                [ div []
+                    [ if model.bodyFatIndexSubmitted then
+                        div [] [ viewBodyFatIndexResultCard model.bodyFatIndex model.locale ]
+
+                      else
+                        div [] []
                     ]
-              , gridCell gridStyle
-                    [ div []
-                        [ if model.bodyFatIndexSubmitted then
-                            div [] [ viewBodyFatIndexResultCard model.bodyFatIndex model.locale ]
-                          else
-                            div [] []
-                        ]
-                    ]
-              ]
-                |> Grid.grid []
-            ]
+                ]
+          ]
+            |> Grid.grid []
+        ]
 
 
 viewBodyFatValue : Maybe Float -> String
@@ -1439,21 +1444,21 @@ textField mdl i label value f =
                     , Textfield.error error
                     ]
     in
-        div []
-            [ Textfield.render
-                Mdl
-                [ i ]
-                mdl
-                (List.append
-                    [ Textfield.label label
-                    , Textfield.floatingLabel
-                    , Textfield.text_
-                    , Options.onInput f
-                    ]
-                    content
-                )
-                []
-            ]
+    div []
+        [ Textfield.render
+            Mdl
+            [ i ]
+            mdl
+            (List.append
+                [ Textfield.label label
+                , Textfield.floatingLabel
+                , Textfield.text_
+                , Options.onInput f
+                ]
+                content
+            )
+            []
+        ]
 
 
 {-| When clicking a link we want to prevent the default browser behaviour which is to load a new page.
@@ -1467,7 +1472,7 @@ onLinkClick message =
             , preventDefault = True
             }
     in
-        onWithOptions "click" options (JsonDecode.succeed message)
+    onWithOptions "click" options (JsonDecode.succeed message)
 
 
 {-| parse initial browser location and UrlChange messages
@@ -1476,7 +1481,7 @@ parseLocation : Location -> Route
 parseLocation location =
     -- location
     -- |> UrlParser.parsePath routeParser |>
-    Debug.log ("parse location for location: " ++ (toString location)) UrlParser.parseHash string location
+    Debug.log ("parse location for location: " ++ toString location) UrlParser.parseHash string location
         |> Maybe.map pathToRoute
         |> Maybe.withDefault RouteNotFound
 
@@ -1509,8 +1514,8 @@ location2TabID location =
         path =
             UrlParser.parseHash string location
     in
-        Maybe.map lookupTabId path
-            |> Maybe.withDefault 0
+    Maybe.map lookupTabId path
+        |> Maybe.withDefault 0
 
 
 pathToRoute : String -> Route
@@ -1530,7 +1535,7 @@ pathToRoute path =
                 _ ->
                     WelcomePage
     in
-        Debug.log ("new route for path: " ++ (toString path)) newRoute
+    Debug.log ("new route for path: " ++ toString path) newRoute
 
 
 lookupTabId : String -> Int

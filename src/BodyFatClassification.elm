@@ -1,6 +1,6 @@
 module BodyFatClassification exposing (classifyBodyFat)
 
-import Utils exposing (Gender(..), Classification(..), Age)
+import Utils exposing (Age, Classification(..), Gender(..))
 
 
 type alias ThresholdValues =
@@ -19,11 +19,11 @@ classifyBodyFat gender maybeAge maybeBodyFat =
         maybeThresholds =
             Maybe.andThen (\age -> thresholds gender age) maybeAge
     in
-        Maybe.map3
-            (\_ bodyFat values -> classify bodyFat values)
-            maybeAge
-            maybeBodyFat
-            maybeThresholds
+    Maybe.map3
+        (\_ bodyFat values -> classify bodyFat values)
+        maybeAge
+        maybeBodyFat
+        maybeThresholds
 
 
 classify : Float -> ThresholdValues -> Classification
@@ -32,16 +32,20 @@ classify val tuple =
         ( a, b, c, d ) =
             tuple
     in
-        if val < a then
-            VeryBad (Just "Way too low")
-        else if val > a && val < b then
-            Good (Just ":)")
-        else if val > b && val < c then
-            Bad (Just "too low")
-        else if val > c && val < d then
-            VeryBad (Just "Too high")
-        else
-            VeryBad (Just "Way too high")
+    if val < a then
+        VeryBad (Just "Way too low")
+
+    else if val > a && val < b then
+        Good (Just ":)")
+
+    else if val > b && val < c then
+        Bad (Just "too low")
+
+    else if val > c && val < d then
+        VeryBad (Just "Too high")
+
+    else
+        VeryBad (Just "Way too high")
 
 
 thresholds : Gender -> Age -> Maybe ThresholdValues
@@ -71,6 +75,6 @@ thresholds gender age =
                     , { start_age = 60, end_age = 200, values = ( 17, 23.3, 26.2, 29.3 ) }
                     ]
     in
-        List.filter (\rec -> rec.start_age <= age && rec.end_age > age) list
-            |> List.head
-            |> Maybe.map .values
+    List.filter (\rec -> rec.start_age <= age && rec.end_age > age) list
+        |> List.head
+        |> Maybe.map .values

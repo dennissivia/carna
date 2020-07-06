@@ -1,8 +1,7 @@
 module BodyFatCalculation exposing (Skinfolds, caliper3foldsJp, caliper4foldsNhca, caliper7foldsJp, caliper9foldsParillo)
 
-import Utils exposing (Gender(..), Age, UnsafeFloat, round2)
-import Result.Extra as ResultExtra
 import Maybe.Extra as MaybeExtra
+import Utils exposing (Age, Gender(..), UnsafeFloat, round2)
 
 
 {-| used for calculation
@@ -25,7 +24,7 @@ Skinfolds: chest, abdomen, thigh
 
 Algorithm:
 #fat [%] = 495 / d - 450
-#d = 1.083800 - 0.0008267*S + 0.0000016*S² - 0.0002574*A
+#d = 1.083800 - 0.0008267 * S + 0.0000016*S² - 0.0002574 * A
 #S = sum of all three folds
 #A = age in years
 
@@ -33,7 +32,7 @@ Female:
 Skinfolds: triceps, abdomen, hip
 
 #fat [%] = 495 / d - 450
-#d = 1.089733 - 0.000924*S + 0.0000056*S² - 0.00012828*A
+#d = 1.089733 - 0.000924 * S + 0.0000056*S² - 0.00012828 * A
 #S = sum of all three folds
 #A = age in years
 
@@ -45,7 +44,7 @@ caliper3foldsJp skinFolds gender age =
             Maybe.map3 (\x y z -> x + y + z) skinFolds.triceps skinFolds.abdomen skinFolds.iliacCrest
                 |> Maybe.map2
                     (\age_ sum ->
-                        (1.089733 - (0.000924 * sum) + (0.0000056 * (sum ^ 2)) - (0.00012828 * age_))
+                        1.089733 - (0.000924 * sum) + (0.0000056 * (sum ^ 2)) - (0.00012828 * age_)
                     )
                     age
                 |> Maybe.map
@@ -56,7 +55,7 @@ caliper3foldsJp skinFolds gender age =
             Maybe.map3 (\x y z -> x + y + z) skinFolds.chest skinFolds.abdomen skinFolds.thigh
                 |> Maybe.map2
                     (\age_ sum ->
-                        (1.10938 - (0.0008267 * sum) + (0.0000016 * (sum ^ 2)) - (0.0002574 * age_))
+                        1.10938 - (0.0008267 * sum) + (0.0000016 * (sum ^ 2)) - (0.0002574 * age_)
                     )
                     age
                 |> Maybe.map
@@ -66,7 +65,7 @@ caliper3foldsJp skinFolds gender age =
 
 {-| Caliper4foldsNhca
 S = armpit + shoulderblade + chest + abdomen
-(0.27784*S)-(0.00053 * S^2) + (0.12437*@data.age-3.28791)
+(0.27784*S)-(0.00053 * S²) + (0.12437 * @data.age-3.28791)
 -- NOTE git: more narrow types by using maybe instead of result
 -}
 caliper4foldsNhca : Skinfolds -> Maybe Age -> Maybe Float
@@ -122,28 +121,28 @@ caliper7foldsJp skinFolds gender age =
         sum =
             Maybe.map List.sum skinFolds_
     in
-        case gender of
-            Female ->
-                sum
-                    |> Maybe.map2
-                        (\age_ s ->
-                            (1.097 - 0.00046971 * s + 0.00000056 * s ^ 2 - 0.00012828 * age_)
-                        )
-                        age
-                    |> Maybe.map
-                        (\d -> 495 / d - 450)
-                    |> Maybe.map round2
+    case gender of
+        Female ->
+            sum
+                |> Maybe.map2
+                    (\age_ s ->
+                        1.097 - 0.00046971 * s + 0.00000056 * s ^ 2 - 0.00012828 * age_
+                    )
+                    age
+                |> Maybe.map
+                    (\d -> 495 / d - 450)
+                |> Maybe.map round2
 
-            _ ->
-                sum
-                    |> Maybe.map2
-                        (\age_ s ->
-                            (1.112 - 0.00043499 * s + 0.00000055 * s ^ 2 - 0.00028826 * age_)
-                        )
-                        age
-                    |> Maybe.map
-                        (\d -> 495 / d - 450)
-                    |> Maybe.map round2
+        _ ->
+            sum
+                |> Maybe.map2
+                    (\age_ s ->
+                        1.112 - 0.00043499 * s + 0.00000055 * s ^ 2 - 0.00028826 * age_
+                    )
+                    age
+                |> Maybe.map
+                    (\d -> 495 / d - 450)
+                |> Maybe.map round2
 
 
 {-| Caliper9foldsParillo:
@@ -175,5 +174,5 @@ caliper9foldsParillo skinFolds weight =
         sum =
             Maybe.map List.sum skinFolds_
     in
-        Maybe.map2 (\s weight_ -> 27 * s / (weight_ / 0.454)) sum weight
-            |> Maybe.map round2
+    Maybe.map2 (\s weight_ -> 27 * s / (weight_ / 0.454)) sum weight
+        |> Maybe.map round2

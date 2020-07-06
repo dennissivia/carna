@@ -1,4 +1,4 @@
-module I18n exposing (Locale(..), Key(..), t)
+module I18n exposing (Key(..), Locale(..), t)
 
 -- All translations for a given key
 
@@ -88,7 +88,7 @@ translate language key =
                 FR ->
                     .french
     in
-        knownTranslations key |> accessor
+    knownTranslations key |> accessor
 
 
 knownTranslations : Key -> TranslationRecord
@@ -291,11 +291,11 @@ knownTranslations key =
                           Er soll helfen Untergewicht, Idealgewicht und Übergewicht zu erkennen.
                           Der BMI ist allerdings eher ein grober Richtwert, der u.A. nicht die individuelle
                           Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe berücksichtigt.
-                         <u>Formel:</u> Gewicht / (Größe(cm)/100)^2) """
+                         <u>Formel:</u> Gewicht / (Größe(cm)/100)²) """
             , english = """The BMI is caculated from the weight and height of an individual.
                          It estimates if a person is underweight, has normal weight, is overweight, or obese.
                          However, the BMI does not consider individual factors and should be considered a rough estimate.<br /><br />
-                         <u>Formula:</u> weight / (height(cm)/100)^2) """
+                         <u>Formula:</u> weight / (height(cm)/100)²) """
             , french = "translationMissing"
             }
 

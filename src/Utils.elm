@@ -1,4 +1,4 @@
-module Utils exposing (Gender(..), Classification(..), Age, UnsafeFloat, round2)
+module Utils exposing (Age, Classification(..), Gender(..), UnsafeFloat, round2)
 
 
 type alias Age =
@@ -29,4 +29,4 @@ round2 : Float -> Float
 round2 inp =
     round (inp * 100)
         |> toFloat
-        |> (flip (/) 100)
+        |> flip (/) 100

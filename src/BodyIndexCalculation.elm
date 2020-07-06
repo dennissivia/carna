@@ -1,4 +1,4 @@
-module BodyIndexCalculation exposing (calculateBMI, calculateBAI, calculateBrocaIndex, calculatePonderalIndex, calculateSkinSurfaceArea, calculateWaistHipRatio)
+module BodyIndexCalculation exposing (calculateBAI, calculateBMI, calculateBrocaIndex, calculatePonderalIndex, calculateSkinSurfaceArea, calculateWaistHipRatio)
 
 import Utils exposing (Gender(..), round2)
 
@@ -11,7 +11,7 @@ calculateBMI weight height =
         |> Maybe.withDefault -1
 
 
-{-| Formula: (weight / (height / 100 ) ^ 2)
+{-| Formula: (weight / (height / 100 ) ²)
 -}
 calculateBMI_ : Float -> Float -> Float
 calculateBMI_ weight height =
@@ -47,14 +47,14 @@ calculateBrocaIndex_ gender height =
         baseWeight =
             height - 100
     in
-        case Maybe.withDefault GenderOther gender of
-            Female ->
-                (baseWeight * 0.8)
-                    |> round2
+    case Maybe.withDefault GenderOther gender of
+        Female ->
+            (baseWeight * 0.8)
+                |> round2
 
-            _ ->
-                (baseWeight * 0.9)
-                    |> round2
+        _ ->
+            (baseWeight * 0.9)
+                |> round2
 
 
 calculatePonderalIndex : Maybe Float -> Maybe Float -> Float
@@ -71,9 +71,9 @@ calculatePonderalIndex_ weight height =
         denominator =
             (height / 100) ^ 3
     in
-        weight
-            / denominator
-            |> round2
+    weight
+        / denominator
+        |> round2
 
 
 calculateSkinSurfaceArea : Maybe Float -> Maybe Float -> Float
@@ -82,7 +82,7 @@ calculateSkinSurfaceArea weight height =
         |> Maybe.withDefault -1
 
 
-{-| Formula (Du Bois): (0.007184* (height ^ 0.725) * (weight ^ 0.425))
+{-| Formula (Du Bois): (0.007184 * (height ^ 0.725) * (weight ^ 0.425))
 -}
 calculateSkinSurfaceArea_ : Float -> Float -> Float
 calculateSkinSurfaceArea_ weight height =
@@ -96,8 +96,8 @@ calculateSkinSurfaceArea_ weight height =
         c =
             0.425
     in
-        (a * (height ^ b) * (weight ^ c))
-            |> round2
+    (a * (height ^ b) * (weight ^ c))
+        |> round2
 
 
 calculateWaistHipRatio : Maybe Float -> Maybe Float -> Float

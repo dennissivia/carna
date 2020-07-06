@@ -1,6 +1,6 @@
 module WelcomeContent exposing (..)
 
-import I18n exposing (Locale(..), Key(..))
+import I18n exposing (Key(..), Locale(..))
 
 
 type alias CardContent =

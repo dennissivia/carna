@@ -1,11 +1,11 @@
 module BodyIndexCalculationTest exposing (..)
 
-import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, list, int, float, string, char)
-import Test exposing (..)
-import Regex exposing (contains, regex)
 import BodyIndexCalculation exposing (..)
+import Expect exposing (Expectation)
+import Fuzz exposing (Fuzzer, char, float, int, list, string)
 import Main exposing (..)
+import Regex exposing (contains, regex)
+import Test exposing (..)
 
 
 suite : Test
@@ -24,12 +24,12 @@ suite =
             [ describe "validateChainFloat"
                 [ fuzz float "parses numbers" <|
                     \randomNum ->
-                        (toString randomNum)
+                        toString randomNum
                             |> validateChainFloat
                             |> Expect.equal (Ok randomNum)
                 , fuzz (list char) "does not accept empty strings" <|
                     \chars ->
-                        case (String.trim (String.fromList chars)) of
+                        case String.trim (String.fromList chars) of
                             "" ->
                                 String.fromList chars
                                     |> validateChainFloat
@@ -39,7 +39,7 @@ suite =
                                 Expect.pass
                 , fuzz (list char) "does not accept non digit chars" <|
                     \chars ->
-                        case (contains (regex "[^-+.0-9]") (String.trim <| String.fromList chars)) of
+                        case contains (regex "[^-+.0-9]") (String.trim <| String.fromList chars) of
                             True ->
                                 String.fromList chars
                                     |> validateChainFloat
