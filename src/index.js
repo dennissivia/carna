@@ -23,11 +23,17 @@ var app = Elm.Main.fullscreen({
 })
 
 app.ports.trackHashPage.subscribe(function (path) {
+  if (typeof ga === "undefined") {
+    return
+  }
   ga("set", "page", path)
   ga("send", "pageview")
 })
 
 app.ports.trackBodyIndexSubmit.subscribe(function () {
+  if (typeof ga === "undefined") {
+    return
+  }
   ga("send", {
     hitType: "event",
     eventCategory: "BodyIndex",
@@ -36,6 +42,9 @@ app.ports.trackBodyIndexSubmit.subscribe(function () {
 })
 
 app.ports.trackBodyFatSubmit.subscribe(function () {
+  if (typeof ga === "undefined") {
+    return
+  }
   ga("send", {
     hitType: "event",
     eventCategory: "BodyFat",
@@ -44,7 +53,7 @@ app.ports.trackBodyFatSubmit.subscribe(function () {
 })
 
 app.ports.saveBodyIndex.subscribe(function (record) {
-  console.log("Saving record: ", record)
+  console.log("Saving record to localstore: ", record)
   localStorage.setItem("lastBodyIndexData", JSON.stringify(record))
 })
 
