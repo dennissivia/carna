@@ -1,8 +1,5 @@
 .DS_Store
-dist/app-*.js
-dist/index.html
-dist/logo.png
-dist/favicon.ico
+dist/
 node_modules
 elm-stuff
 elm-mdl-reference/
