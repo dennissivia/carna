@@ -21,6 +21,9 @@ module.exports = {
       template: 'src/index.template.ejs',
       inject: 'body',
     }),
+    new HtmlWebpackPlugin({
+      favicon: "./src/favicon.ico"
+    }),
     new ScriptExtHtmlWebpackPlugin({
       defaultAttribute: 'async'
     }),

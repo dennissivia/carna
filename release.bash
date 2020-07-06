@@ -2,6 +2,7 @@
 
 set -e
 set -x
+yarn build
 
 docker build --tag carna:latest .
 docker tag carna:latest docker.io/scepticulous/carna:latest

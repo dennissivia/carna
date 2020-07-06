@@ -404,8 +404,8 @@ update msg model =
                 scrollCmd =
                     Task.attempt (always NoOp) (Dom.Scroll.toBottom "elm-mdl-layout-main")
 
-                storeSubmissionCmd =
-                    Http.send BodyIndexStored (storeBodyIndexRequest <| toBodyIndexValues model.bodyIndex)
+                -- storeSubmissionCmd =
+                    -- Http.send BodyIndexStored (storeBodyIndexRequest <| toBodyIndexValues model.bodyIndex)
 
                 saveBodyIndexCmd =
                     saveBodyIndex <| bodyIndexValuesToJson <| toBodyIndexValues model.bodyIndex
@@ -413,7 +413,7 @@ update msg model =
                 -- add http request here
                 { model | bodyIndexSubmitted = True, bodyIndex = newBodyIndex }
                     ! [ scrollCmd
-                      , storeSubmissionCmd
+                    --   , storeSubmissionCmd
                       , trackBodyIndexSubmit ()
                       , saveBodyIndexCmd
                       ]

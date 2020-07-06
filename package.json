@@ -16,7 +16,7 @@
   },
   "scripts": {
     "start": "webpack-dev-server --hot --inline --port 3333",
-    "build": "rimraf dist && mkdir -p dist/static/css && webpack && mv dist/*.eot dist/static/css/ && mv dist/*.woff* dist/static/css/ && mv dist/*.svg dist/static/css/ && mv dist/*.ttf dist/static/css/",
+    "build": "rimraf dist && mkdir -p dist/static/{css,img} && webpack && mv dist/*.eot dist/static/css/ && mv dist/*.woff* dist/static/css/ && mv dist/*.svg dist/static/css/ && mv dist/*.ttf dist/static/css/",
     "reinstall": "yarn add rimraf && rimraf node_modules && npm uninstall -g elm && npm install -g elm && yarn install && elm package install"
   },
   "author": "Dennis Sivia <dennis.sivia@xing.com>",
