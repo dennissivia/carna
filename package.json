@@ -5,6 +5,7 @@
   "main": "elm.js",
   "devDependencies": {
     "clear": "0.0.1",
+    "copy-webpack-plugin": "^6.0.3",
     "gulp": "^3.9",
     "gulp-sass": "^4.0",
     "gulp-util": "^3.0",
