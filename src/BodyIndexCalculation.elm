@@ -39,7 +39,7 @@ calculateBrocaIndex gender height =
         |> Maybe.withDefault -1
 
 
-{-| Formula height - 100 x (female or male factor)
+{-| Formula height - 100×(female or male factor)
 -}
 calculateBrocaIndex_ : Maybe Gender -> Float -> Float
 calculateBrocaIndex_ gender height =
@@ -82,7 +82,7 @@ calculateSkinSurfaceArea weight height =
         |> Maybe.withDefault -1
 
 
-{-| Formula (Du Bois): (0.007184 x (height ^ 0.725) x (weight ^ 0.425))
+{-| Formula (Du Bois): (0.007184×(height ^ 0.725)×(weight ^ 0.425))
 -}
 calculateSkinSurfaceArea_ : Float -> Float -> Float
 calculateSkinSurfaceArea_ weight height =

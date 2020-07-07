@@ -24,7 +24,7 @@ Skinfolds: chest, abdomen, thigh
 
 Algorithm:
 #fat [%] = 495 / d - 450
-#d = 1.083800 - 0.0008267 x S + 0.0000016 x S² - 0.0002574 x A
+#d = 1.083800 - 0.0008267×S + 0.0000016×S² - 0.0002574×A
 #S = sum of all three folds
 #A = age in years
 
@@ -32,7 +32,7 @@ Female:
 Skinfolds: triceps, abdomen, hip
 
 #fat [%] = 495 / d - 450
-#d = 1.089733 - 0.000924 x S + 0.0000056 x S² - 0.00012828 x A
+#d = 1.089733 - 0.000924×S + 0.0000056×S² - 0.00012828×A
 #S = sum of all three folds
 #A = age in years
 
@@ -65,7 +65,7 @@ caliper3foldsJp skinFolds gender age =
 
 {-| Caliper4foldsNhca
 S = armpit + shoulderblade + chest + abdomen
-(0.27784 x S)-(0.00053 x S²) + (0.12437 x @data.age-3.28791)
+(0.27784×S)-(0.00053×S²) + (0.12437×@data.age-3.28791)
 -- NOTE git: more narrow types by using maybe instead of result
 -}
 caliper4foldsNhca : Skinfolds -> Maybe Age -> Maybe Float
@@ -94,12 +94,12 @@ Algorithm:
 %fat = (495.0/d-450.0)
 
 Male:
-d = 1.112 - 0.00043499 x S + 0.00000055 x S² - 0.00028826 x A
+d = 1.112 - 0.00043499×S + 0.00000055×S² - 0.00028826×A
 S = Sum of skinfolds
 A = Age in years
 
 Female:
-d = 1.0970 - 0.00046971 x S + 0.00000056 x S² - 0.00012828 x A
+d = 1.0970 - 0.00046971×S + 0.00000056×S² - 0.00012828×A
 S = Sum of skinfolds
 A = Age in years
 

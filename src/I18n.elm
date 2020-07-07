@@ -315,12 +315,12 @@ knownTranslations key =
             { german = """Mit dem [Body-Index-Rechner](/#body-index) den ist es möglich
                         den [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (nach WHO),
                         den [BAI](https://en.wikipedia.org/wiki/Body_adiposity_index) (Body Adiposity Index),
-                        das Idealgewicht nach Broca index, den Ponderal-Index,
+                        das Idealgewicht nach Broca-Index, den Ponderal-Index,
                         das Taille-Hüft-Verhältnis und die Körperoberfläche zu berechnen."""
             , english = """With our [body index calculator](/#body-index), you can calculate your
                          [BMI](https://en.wikipedia.org/wiki/Body_mass_index) (according to WHO),
                          the BAI (Body Adiposity Index),
-                         your ideal weight (Broca index), your Ponderal-Index, waist-hip-ratio
+                         your ideal weight (Broca-Index), your Ponderal-Index, waist-hip-ratio
                          and your body surface area."""
             , french = "translationMissing"
             }
