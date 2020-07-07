@@ -3,6 +3,10 @@
 set -e
 set -x
 
+
+elm-format --elm-version=0.18 --validate src tests
+elm-test
+
 yarn build
 
 docker build --tag carna:latest .

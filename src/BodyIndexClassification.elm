@@ -107,9 +107,9 @@ classifyBMIWithAge bmi age =
 
 weight=self.broca\_index(measurement) // height - 100
 if measurement.female?
-BodyIndexCalculator.trim\_result(weight_0.8+age\_offset(measurement.age))
+BodyIndexCalculator.trim\_result(weight\_0.8+age\_offset(measurement.age))
 else
-BodyIndexCalculator.trim\_result(weight_0.9+age\_offset(measurement.age))
+BodyIndexCalculator.trim\_result(weight\_0.9+age\_offset(measurement.age))
 end
 
 -}

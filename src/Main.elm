@@ -26,7 +26,7 @@ import Material.Grid as Grid exposing (Device(..))
 import Material.Icons.Alert exposing (error_outline)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 import Material.Layout as Layout
-import Material.Options as Options exposing (Style, cs, css, id, nop)
+import Material.Options exposing (Style, cs, css, id, nop)
 import Material.Scheme
 import Material.Table as Table
 import Material.Textfield as Textfield
@@ -982,7 +982,7 @@ view model =
             ]
             { header =
                 [ Layout.row
-                    [ Options.nop, css "transition" "height 333ms ease-in-out 0s" ]
+                    [ Material.Options.nop, css "transition" "height 333ms ease-in-out 0s" ]
                     [ Layout.title [] [ text "Carna" ]
                     , Layout.spacer
                     , Layout.navigation [] []
@@ -993,13 +993,13 @@ view model =
                 , Layout.navigation
                     []
                     [ Layout.link
-                        [ Layout.href "/#welcome", Options.onClick (Layout.toggleDrawer Mdl) ]
+                        [ Layout.href "/#welcome", Material.Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "welcome" ]
                     , Layout.link
-                        [ Layout.href "/#body-index", Options.onClick (Layout.toggleDrawer Mdl) ]
+                        [ Layout.href "/#body-index", Material.Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "body-index" ]
                     , Layout.link
-                        [ Layout.href "/#body-fat", Options.onClick (Layout.toggleDrawer Mdl) ]
+                        [ Layout.href "/#body-fat", Material.Options.onClick (Layout.toggleDrawer Mdl) ]
                         [ text "body-fat" ]
                     ]
                 ]
@@ -1114,7 +1114,7 @@ viewBodyIndexForm model =
                 , Button.colored
                 , Button.ripple
                 , Button.disabled |> Material.Options.when (not model.bodyIndex.isValid)
-                , Options.onClick BodyIndexSubmit
+                , Material.Options.onClick BodyIndexSubmit
                 ]
                 [ text (I18n.t model.locale I18n.CalculateBodyIndex) ]
             ]
@@ -1186,7 +1186,7 @@ viewGenderSelect model groupName currentGender msg =
             [ Toggles.value <| hasGender currentGender Female
             , Toggles.group groupName
             , Toggles.ripple
-            , Options.onToggle <| msg Female
+            , Material.Options.onToggle <| msg Female
             ]
             [ text (I18n.t model.locale I18n.GenderOptionFemale) ]
         , Toggles.radio
@@ -1196,7 +1196,7 @@ viewGenderSelect model groupName currentGender msg =
             [ Toggles.value <| hasGender currentGender Male
             , Toggles.group groupName
             , Toggles.ripple
-            , Options.onToggle <| msg Male
+            , Material.Options.onToggle <| msg Male
             ]
             [ text (I18n.t model.locale I18n.GenderOptionMale) ]
         ]
@@ -1404,7 +1404,7 @@ viewBodyFatIndexForm model =
                     , Button.colored
                     , Button.ripple
                     , Button.disabled |> Material.Options.when (not bodyFatIndex.isValid)
-                    , Options.onClick BodyFatIndexSubmit
+                    , Material.Options.onClick BodyFatIndexSubmit
                     ]
                     [ text "Calculate body fat" ]
                 ]
@@ -1452,7 +1452,7 @@ textField mdl i label value f =
                 [ Textfield.label label
                 , Textfield.floatingLabel
                 , Textfield.text_
-                , Options.onInput f
+                , Material.Options.onInput f
                 ]
                 content
             )
