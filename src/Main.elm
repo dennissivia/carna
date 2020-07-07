@@ -27,7 +27,6 @@ import Material.Icons.Alert exposing (error_outline)
 import Material.Icons.Social exposing (sentiment_dissatisfied, sentiment_neutral, sentiment_satisfied, sentiment_very_dissatisfied, sentiment_very_satisfied)
 import Material.Layout as Layout
 import Material.Options as Options exposing (Style, cs, css, id, nop)
-import Material.Options
 import Material.Scheme
 import Material.Table as Table
 import Material.Textfield as Textfield
@@ -1255,8 +1254,8 @@ viewBodyIndexResulTable bodyIndex locale =
             viewResultTable locale
                 [ viewResultTableRow "BMI WHO" (toString result.bmi) bodyIndexRating.bmi
                 , viewResultTableRow "BAI" (toString result.bai) bodyIndexRating.bai
-                , viewResultTableRow "Broca Index" (toString result.brocaIndex) bodyIndexRating.brocaIndex
-                , viewResultTableRow "Ponderal Index" (toString result.ponderalIndex) bodyIndexRating.ponderalIndex
+                , viewResultTableRow "Broca-Index" (toString result.brocaIndex) bodyIndexRating.brocaIndex
+                , viewResultTableRow "Ponderal-Index" (toString result.ponderalIndex) bodyIndexRating.ponderalIndex
                 , viewResultTableRow "BSA" (toString result.surfaceArea) bodyIndexRating.surfaceArea
                 , viewResultTableRow "Waist-Hip ratio" (toString result.whRatio) bodyIndexRating.whRatio
                 ]
