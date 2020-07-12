@@ -1,112 +1,111 @@
-.elm-overlay { z-index: 999; }
-
-@media only screen and (min-device-width : 320px) and (max-device-width : 370px) {
-    .header {
-        display: none!important;
-    }
-
-    .result-card{
-        height: 100%;
-        width: 280px!important;
-    }
-
-    .body-index-result-table td{
-        text-align: center!important;
-        padding-left: 0!important;
-        padding-right: 0!important;
-    }
-
+.elm-overlay {
+  z-index: 999;
 }
 
-@media only screen and (min-device-width : 370px) and (max-device-width : 480px) {
-    .header {
-        display: none!important;
-    }
+@media only screen and (min-device-width: 320px) and (max-device-width: 370px) {
+  .header {
+    display: none !important;
+  }
 
-    .result-card{
-        height: 100%;
-        width: 320px;
-    }
+  .result-card {
+    height: 100%;
+    width: 280px !important;
+  }
 
-    .body-index-result-table td{
-        text-align: center!important;
-        padding-left: 12px!important;
-    }
+  .body-index-result-table td {
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 }
 
+@media only screen and (min-device-width: 370px) and (max-device-width: 480px) {
+  .header {
+    display: none !important;
+  }
+
+  .result-card {
+    height: 100%;
+    width: 320px;
+  }
+
+  .body-index-result-table td {
+    text-align: center !important;
+    padding-left: 12px !important;
+  }
+}
 
 /* everything with at least a horizontal phone size*/
-@media only screen and (min-width : 480px) {
-    .header{
-        display: block;
-    }
+@media only screen and (min-width: 480px) {
+  .header {
+    display: block;
+  }
 
-    .grid-wrap{
-        /* looks nicer on larger screens */
-        padding: 2rem;
-    }
-    .result-card{
-        /* ensure we respect the grid cell size */
-        /* width: inherit!important; */
-        height: 100%;
-        width: 320px;
-    }
-    .body-index-result-table td{
-        text-align: center!important;
-        padding-left: 12px!important;
-    }
+  .grid-wrap {
+    /* looks nicer on larger screens */
+    padding: 2rem;
+  }
+  .result-card {
+    /* ensure we respect the grid cell size */
+    /* width: inherit!important; */
+    height: 100%;
+    width: 320px;
+  }
+  .body-index-result-table td {
+    text-align: center !important;
+    padding-left: 12px !important;
+  }
 }
 
-.body-index-result-table th{
-    font-weight: bold!important;
-    text-align: center!important;
+.body-index-result-table th {
+  font-weight: bold !important;
+  text-align: center !important;
 }
 
-
-.body-index-result-table td:last-of-type{
-    /* color: green */
+.body-index-result-table td:last-of-type {
+  /* color: green */
 }
 
-.gender-select label{
-    margin-right: 30px;
-    margin-bottom: 20px;
+.gender-select label {
+  margin-right: 30px;
+  margin-bottom: 20px;
 }
 
-.result-table-wrap{
-    width: 100%!important;
+.result-table-wrap {
+  width: 100% !important;
 }
 
-.body-index-result-table{
-    color: black;
-    width: 100%;
-    font-size: 0.8em!important;
+.body-index-result-table {
+  color: black;
+  width: 100%;
+  font-size: 0.8em !important;
 }
 
-.invalid-result{
-    color: #ccc;
-    font-weight: 200;
+.invalid-result {
+  color: #ccc;
+  font-weight: 200;
 }
 
 /* hack strange spacing away (calc creates space on desktop sized screens) */
-.mdl-layout__tab-bar{
-    width: calc(100% - 56px)!important;
+.mdl-layout__tab-bar {
+  width: calc(100% - 56px) !important;
 }
 
-.content-card-body-wrap{
-    color: black!important;
+.content-card-body-wrap {
+  color: black !important;
 }
 
-.content-card-body-wrap div *{
-    font-size: 1.1em;
-    line-height: 20px;
+.content-card-body-wrap div * {
+  font-size: 1em;
+  line-height: 20px;
 }
 
-.content-card{
-    width:90%!important;
+.content-card {
+  width: 90% !important;
 }
 
-.drawer-logo{
-    background: url('logo.png') center / cover;
-    height: 164px;
-    border-bottom: 1px solid #80CBC4;
+.drawer-logo {
+  background: url("logo.png") center / cover;
+  height: 164px;
+  border-bottom: 1px solid #80cbc4;
 }

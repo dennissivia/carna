@@ -1043,12 +1043,12 @@ viewWelcomePage : Model -> Html Msg
 viewWelcomePage model =
     let
         cards =
-            [ news model.locale
+            [ bmiInfo model.locale
             , carnaInfo model.locale
-            , bmiInfo model.locale
+            , classificationInfo model.locale
+            , news model.locale
             , calipometrie model.locale
             , caliperMethods model.locale
-            , classificationInfo model.locale
             ]
     in
     div []
