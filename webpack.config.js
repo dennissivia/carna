@@ -1,7 +1,8 @@
-var path = require("path")
-var HtmlWebpackPlugin = require("html-webpack-plugin")
-var UglifyJSPlugin = require("uglifyjs-webpack-plugin")
-var ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin")
+const path = require("path")
+const HtmlWebpackPlugin = require("html-webpack-plugin")
+const UglifyJSPlugin = require("uglifyjs-webpack-plugin")
+const ScriptExtHtmlWebpackPlugin = require("script-ext-html-webpack-plugin")
+const CopyWebpackPlugin = require("copy-webpack-plugin")
 
 module.exports = {
   entry: {
@@ -25,8 +26,7 @@ module.exports = {
     new UglifyJSPlugin({
       mangle: true,
     }),
-    // FIXME this would be so great, because we could add all favicons then
-    // new CopyWebpackPlugin([{ from: "src/images", to: "static/img" }]),
+    new CopyWebpackPlugin([{ from: "assets/img", to: "assets/img" }]),
   ],
   module: {
     rules: [
@@ -43,7 +43,6 @@ module.exports = {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
         loader: "elm-webpack-loader?verbose=true&warn=true&debug=false",
-        // loader:  'elm-webpack-loader?verbose=true&warn=true&debug=true',
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,

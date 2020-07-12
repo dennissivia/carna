@@ -291,11 +291,20 @@ knownTranslations key =
                           Er soll helfen Untergewicht, Idealgewicht und Übergewicht zu erkennen.
                           Der BMI ist allerdings eher ein grober Richtwert, der u.A. nicht die individuelle
                           Zusammensetzung der Körpermasse aus Fett- und Muskelgewebe berücksichtigt.
-                         <u>Formel:</u> Gewicht / (Größe(cm)/100)² """
+                         <div id="bmi-formula">
+                           <object data="/assets/img/bmi-de.svg" type="image/svg+xml">
+                         <u>Formel:</u> Gewicht / (Größe(cm)/100)²
+  </object>
+                         </div>
+                         """
             , english = """The BMI is caculated from the weight and height of an individual.
                          It estimates if a person is underweight, has normal weight, is overweight, or obese.
                          However, the BMI does not consider individual factors and should be considered a rough estimate.<br /><br />
-                         <u>Formula:</u> weight / (height(cm)/100)² """
+                         <div id="bmi-formula">
+                           <object data="/assets/img/bmi-en.svg" type="image/svg+xml">
+                         <u>Formula:</u> weight / (height(cm)/100)²
+  </object>
+                         </div> """
             , french = "translationMissing"
             }
 
