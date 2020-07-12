@@ -22,12 +22,12 @@ var app = Elm.Main.fullscreen({
   initialBodyIndex: initialBodyIndex,
 })
 
-app.ports.trackHashPage.subscribe(function (path) {
+app.ports.trackHashPage.subscribe(function (app_path) {
   if (typeof ga === "undefined") {
     return
   }
-  ga("set", "page", path)
-  ga("send", "pageview")
+  const page = window.location.pathname + window.location.hash
+  ga("send", "pageview", { page: page })
 })
 
 app.ports.trackBodyIndexSubmit.subscribe(function () {
