@@ -355,6 +355,22 @@ toUrl tabId =
             "#welcome"
 
 
+routeToTitle : Route -> String
+routeToTitle route =
+    case route of
+        WelcomePage ->
+            "Carna - Stay healthy"
+
+        BodyIndexPage ->
+            "Carna - Body Index Calculator"
+
+        BodyFatPage ->
+            "Carna - Body Fat Calculator"
+
+        RouteNotFound ->
+            "Carna - File not found "
+
+
 routeToPath : Route -> String
 routeToPath route =
     case route of
@@ -460,8 +476,8 @@ update msg model =
         Mdl msg_ ->
             Material.update Mdl msg_ model
 
-        -- FIXME how do we get the route here?
-        -- FIXME can we unify this with NavigateTo
+        -- TODO how do we get the route here?
+        -- TODO can we unify this with NavigateTo
         SelectTab num ->
             let
                 newRoute =
@@ -475,8 +491,6 @@ update msg model =
             in
             Debug.log "SelectTab received " newModel ! [ newUrlCmd ]
 
-        -- FIXME what do we have to do here?
-        -- Handle
         UrlChange newLocation ->
             let
                 newModel =
@@ -484,11 +498,13 @@ update msg model =
 
                 newPath =
                     routeToPath newModel.route
+
+                newTitleCmd =
+                    setTitle <| routeToTitle newModel.route
             in
-            Debug.log "urlchange" <| newModel ! [ trackHashPage newPath ]
+            Debug.log "urlchange" <| newModel ! [ trackHashPage newPath, newTitleCmd ]
 
         --  handle link clicks within the app
-        -- FIXME what do we have to do here?
         NavigateTo newRoute ->
             let
                 newTab =
@@ -1593,6 +1609,9 @@ hasGender maybeGender otherGender =
 
         Just gender ->
             gender == otherGender
+
+
+port setTitle : String -> Cmd a
 
 
 port trackHashPage : String -> Cmd msg

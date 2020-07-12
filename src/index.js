@@ -28,6 +28,10 @@ if (typeof ga !== "undefined") {
   ga("send", "pageview", { page: currentPage })
 }
 
+app.ports.setTitle.subscribe(function (title) {
+  document.title = title
+})
+
 app.ports.trackHashPage.subscribe(function (app_path) {
   if (typeof ga === "undefined") {
     return
