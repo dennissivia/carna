@@ -22,6 +22,12 @@ var app = Elm.Main.fullscreen({
   initialBodyIndex: initialBodyIndex,
 })
 
+const currentPage = window.location.pathname + window.location.hash
+if (typeof ga !== "undefined") {
+  console.log("page view for page: ", currentPage)
+  ga("send", "pageview", { page: currentPage })
+}
+
 app.ports.trackHashPage.subscribe(function (app_path) {
   if (typeof ga === "undefined") {
     return
