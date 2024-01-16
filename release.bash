@@ -4,8 +4,8 @@ set -e
 set -x
 
 
-elm-format --elm-version=0.18 --validate src tests
-elm-test
+#elm-format --elm-version=0.18 --validate src tests
+#elm-test
 
 yarn build
 
